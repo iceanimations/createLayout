@@ -70,6 +70,14 @@
       </item>
      </layout>
     </item>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </item>
+    <item>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_5">
       <item>
@@ -223,7 +231,6 @@
     </hint>
    </hints>
   </connection>
-  <connection>
    <sender>checkBox</sender>
    <signal>toggled(bool)</signal>
    <receiver>label_3</receiver>
@@ -272,52 +279,23 @@
    </hints>
   </connection>
   <connection>
-   <sender>cameraButton</sender>
-   <signal>toggled(bool)</signal>
    <receiver>label</receiver>
    <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
      <x>172</x>
      <y>62</y>
-    </hint>
-    <hint type="destinationlabel">
      <x>65</x>
      <y>124</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>cameraButton</sender>
-   <signal>toggled(bool)</signal>
    <receiver>envFilePathBox</receiver>
    <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
      <x>189</x>
      <y>63</y>
-    </hint>
-    <hint type="destinationlabel">
      <x>207</x>
      <y>127</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>cameraButton</sender>
-   <signal>toggled(bool)</signal>
    <receiver>browseButton1</receiver>
    <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
      <x>189</x>
      <y>67</y>
-    </hint>
-    <hint type="destinationlabel">
      <x>453</x>
      <y>130</y>
-    </hint>
-   </hints>
-  </connection>
  </connections>
 </ui>
