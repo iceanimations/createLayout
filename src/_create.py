@@ -43,6 +43,8 @@ class LayoutCreator(Form, Base):
         seqPath = qutil.getOptionVar(self.seqPathKey)
         if seqPath: self.seqFilePathBox.setText(seqPath)
         
+        pc.mel.eval("source \"R:/Pipe_Repo/Users/Hussain/utilities/loader/command/mel/addInOutAttr.mel\";")
+        
     def setEnvOptionVar(self, text):
         qutil.addOptionVar(self.envPathKey, text)
     
