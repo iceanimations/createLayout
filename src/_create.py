@@ -182,10 +182,15 @@ class LayoutCreator(Form, Base):
             for shot in goodShots:
                 start, end = self.getStartEnd(seqPath, shot)
                 self.appendStatus('Creating '+ shot + '  (Range: %s - %s)'%(start, end))
-                self.addCamera(shot, start, end)
+                cam = self.addCamera(shot, start, end)
+                if self.isImagePlane():
+                    self.addImagePlane(cam, osp.join(seqPath, shot, 'animatic'))
             self.appendStatus('DONE')
         else:
             self.appendStatus('Sequence path not found')
+            
+    def isImagePlane(self):
+        return self.imagePlaneButton.isChecked()
 
     def getStartEnd(self, seqPath, shot):
         path = osp.join(seqPath, shot, 'animatic')
@@ -194,6 +199,8 @@ class LayoutCreator(Form, Base):
             rng = self.getRange(files)
             if rng:
                 return min(rng), max(rng)
+        else:
+            self.appendStatus('<b>Warning: </b>No files found in %s'%path)
         return 0, 0
     
     def getRange(self, files):
@@ -209,3 +216,19 @@ class LayoutCreator(Form, Base):
         cam = qutil.addCamera(name)
         pc.mel.eval('addInOutAttr;')
         cam.attr('in').set(start); cam.out.set(end)
+        return cam
+        
+    def addImagePlane(self, camera, path):
+        self.appendStatus('Creating image plane for %s'%camera.name())
+        files = os.listdir(path)
+        if not files:
+            self.appendStatus('<b>Warning: </b> Could not create imagePlane for %s'%camera.name())
+            return
+        try:
+            filePath = [osp.join(path, phile) for phile in files if osp.isfile(osp.join(path, phile))][0]
+        except IndexError:
+            self.appendStatus('<b>Warning: </b> No files found create imagePlane for %s'%camera.name())
+            return
+        node = pc.PyNode(pc.mel.createImagePlane(camera)[0])
+        node.imageName.set(filePath)
+        node.useFrameExtension.set(1)

@@ -19,11 +19,35 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
-     <widget class="QCheckBox" name="cameraButton">
-      <property name="text">
-       <string>Create Camera Only</string>
-      </property>
-     </widget>
+     <layout class="QHBoxLayout" name="horizontalLayout_4">
+      <item>
+       <widget class="QCheckBox" name="cameraButton">
+        <property name="text">
+         <string>Create Camera Only</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="imagePlaneButton">
+        <property name="text">
+         <string>Create Image Plane</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
     </item>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
@@ -175,54 +199,6 @@
     <hint type="destinationlabel">
      <x>159</x>
      <y>601</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>cameraButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>envFilePathBox</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>60</x>
-     <y>36</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>159</x>
-     <y>65</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>cameraButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>browseButton1</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>25</x>
-     <y>37</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>458</x>
-     <y>67</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>cameraButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>label</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>39</x>
-     <y>37</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>36</x>
-     <y>66</y>
     </hint>
    </hints>
   </connection>
