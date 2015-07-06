@@ -255,11 +255,13 @@ class LayoutCreator(Form, Base):
                                                 continue
                                             else:
                                                 filePath = osp.join(charFilePath, selectedItems[0])
-                                                if osp.exists(filePath):
-                                                    self.appendStatus('Adding character %s'%filePath)
-                                                    qutil.addRef(filePath)
-                                                else:
-                                                    self.appendStatus('<b>Warning: </b> file does not exist %s'%filePath)
+                                        else:
+                                            filePath = osp.join(charFilePath, mayaFiles[0])
+                                        if osp.exists(filePath):
+                                            self.appendStatus('Adding character %s'%filePath)
+                                            qutil.addRef(filePath)
+                                        else:
+                                            self.appendStatus('<b>Warning: </b> file does not exist %s'%filePath)
                                     else:
                                         self.appendStatus('<b>Warning: </b> No maya file found in %s'%charFilePath)
                                 else:
