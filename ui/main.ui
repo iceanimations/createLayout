@@ -130,8 +130,11 @@
       </item>
       <item>
        <widget class="QTextEdit" name="statusBox">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="styleSheet">
-         <string>color: #808080</string>
+         <string/>
         </property>
         <property name="lineWrapMode">
          <enum>QTextEdit::NoWrap</enum>
@@ -221,8 +224,8 @@
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>417</x>
-     <y>608</y>
+     <x>604</x>
+     <y>731</y>
     </hint>
     <hint type="destinationlabel">
      <x>159</x>
@@ -273,7 +276,7 @@
      <y>63</y>
     </hint>
     <hint type="destinationlabel">
-     <x>448</x>
+     <x>635</x>
      <y>94</y>
     </hint>
    </hints>
@@ -321,7 +324,7 @@
      <y>67</y>
     </hint>
     <hint type="destinationlabel">
-     <x>453</x>
+     <x>640</x>
      <y>130</y>
     </hint>
    </hints>

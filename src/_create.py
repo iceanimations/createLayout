@@ -193,6 +193,8 @@ class LayoutCreator(Form, Base):
         self.deleteLater()
         
     def appendStatus(self, msg):
+        if 'Warning' in msg:
+            msg = '<span style="color: orange">'+msg+'<span>'
         self.statusBox.append(msg)
         qApp.processEvents()
     
