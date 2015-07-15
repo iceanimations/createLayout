@@ -17,6 +17,9 @@ import msgBox
 import qutil
 reload(qutil)
 import re
+import fillinout
+import addKeys
+reload(addKeys)
 
 root_path = osp.dirname(osp.dirname(__file__))
 ui_path = osp.join(root_path, 'ui')
@@ -334,6 +337,7 @@ class LayoutCreator(Form, Base):
         cam = qutil.addCamera(name)
         pc.mel.eval('addInOutAttr;')
         cam.attr('in').set(start); cam.out.set(end)
+        addKeys.add([cam], start, end)
         return cam
         
     def addImagePlane(self, camera, path):

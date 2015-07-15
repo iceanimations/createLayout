@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Render Check</string>
+   <string>Create Layout</string>
   </property>
   <property name="styleSheet">
    <string/>
