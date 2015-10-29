@@ -56,13 +56,6 @@
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="imagePlaneButton">
-        <property name="text">
-         <string>Create Image Plane</string>
-        </property>
-       </widget>
-      </item>
-      <item>
        <spacer name="horizontalSpacer_2">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -149,6 +142,29 @@
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_3">
       <item>
+       <widget class="QPushButton" name="addAssetsButton">
+        <property name="minimumSize">
+         <size>
+          <width>75</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="toolTip">
+         <string>Add Assets for the specified Sequence</string>
+        </property>
+        <property name="text">
+         <string>Reference Sequence Assets</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="imagePlaneButton">
+        <property name="text">
+         <string>Create Image Plane</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <spacer name="horizontalSpacer">
         <property name="orientation">
          <enum>Qt::Horizontal</enum>
@@ -210,7 +226,7 @@
      <x>0</x>
      <y>0</y>
      <width>661</width>
-     <height>19</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>

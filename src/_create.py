@@ -48,6 +48,8 @@ class LayoutCreator(Form, Base):
         self.browseButton1.hide()
         self.browseButton3.hide()
         self.charMenu.hide()
+        self.characterButton.hide()
+        self.environmentButton.hide()
         
         self.browseButton1.clicked.connect(self.setEnvPath)
         self.browseButton2.clicked.connect(self.setSeqPath)
@@ -59,6 +61,7 @@ class LayoutCreator(Form, Base):
         self.browseButton3.clicked.connect(self.setCharPath)
         self.charFilePathBox.textChanged.connect(self.populateChars)
         self.seqFilePathBox.textChanged.connect(self.populateShots)
+        self.addAssetsButton.clicked.connect(self.showAddAssetsWindow)
         
         
         envPath = qutil.getOptionVar(self.envPathKey)
@@ -76,6 +79,11 @@ class LayoutCreator(Form, Base):
         
         
         appUsageApp.updateDatabase('createLayout')
+        
+    def showAddAssetsWindow(self):
+        import addAssets
+        reload(addAssets)
+        addAssets.Window(self).show()
         
     def populateShots(self, path):
         if path:
