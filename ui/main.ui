@@ -6,138 +6,64 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>661</width>
-    <height>747</height>
+    <width>451</width>
+    <height>473</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Create Layout</string>
+   <string>MainWindow</string>
   </property>
   <property name="styleSheet">
    <string/>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_2">
+   <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <layout class="QHBoxLayout" name="seqLayout">
       <item>
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>Sequence    </string>
-        </property>
+       <widget class="QComboBox" name="projectBox">
+        <item>
+         <property name="text">
+          <string>--Select Project--</string>
+         </property>
+        </item>
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="seqFilePathBox"/>
-      </item>
-      <item>
-       <widget class="QToolButton" name="browseButton2">
-        <property name="text">
-         <string>...</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_4">
-      <item>
-       <widget class="QCheckBox" name="characterButton">
-        <property name="text">
-         <string>Add Characters</string>
-        </property>
+       <widget class="QComboBox" name="epBox">
+        <item>
+         <property name="text">
+          <string>--Select Episode--</string>
+         </property>
+        </item>
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="environmentButton">
-        <property name="text">
-         <string>Add Environments</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer_2">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <layout class="QHBoxLayout" name="charLayout">
-      <item>
-       <widget class="QLabel" name="charLabel">
-        <property name="text">
-         <string>Character    </string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="charFilePathBox"/>
-      </item>
-      <item>
-       <widget class="QToolButton" name="browseButton3">
-        <property name="text">
-         <string>...</string>
-        </property>
+       <widget class="QComboBox" name="seqBox">
+        <item>
+         <property name="text">
+          <string>--Select Sequence--</string>
+         </property>
+        </item>
        </widget>
       </item>
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="envLayout">
-      <item>
-       <widget class="QLabel" name="envLabel">
-        <property name="text">
-         <string>Environment</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="envFilePathBox"/>
-      </item>
-      <item>
-       <widget class="QToolButton" name="browseButton1">
-        <property name="text">
-         <string>...</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <layout class="QVBoxLayout" name="verticalLayout">
-      <item>
-       <widget class="QProgressBar" name="progressBar">
-        <property name="value">
-         <number>24</number>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QTextEdit" name="statusBox">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="styleSheet">
-         <string/>
-        </property>
-        <property name="lineWrapMode">
-         <enum>QTextEdit::NoWrap</enum>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-     </layout>
+     <widget class="QTextEdit" name="statusBox">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="styleSheet">
+       <string/>
+      </property>
+      <property name="lineWrapMode">
+       <enum>QTextEdit::NoWrap</enum>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
+     </widget>
     </item>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -153,14 +79,7 @@
          <string>Add Assets for the specified Sequence</string>
         </property>
         <property name="text">
-         <string>Reference Sequence Assets</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="imagePlaneButton">
-        <property name="text">
-         <string>Create Image Plane</string>
+         <string>Reference Assets</string>
         </property>
        </widget>
       </item>
@@ -191,19 +110,6 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="stopButton">
-        <property name="minimumSize">
-         <size>
-          <width>75</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>Stop</string>
-        </property>
-       </widget>
-      </item>
-      <item>
        <widget class="QPushButton" name="closeButton">
         <property name="minimumSize">
          <size>
@@ -219,16 +125,6 @@
      </layout>
     </item>
    </layout>
-  </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>661</width>
-     <height>21</height>
-    </rect>
-   </property>
   </widget>
  </widget>
  <resources/>
@@ -246,102 +142,6 @@
     <hint type="destinationlabel">
      <x>159</x>
      <y>601</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>characterButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>charLabel</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>54</x>
-     <y>68</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>45</x>
-     <y>92</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>characterButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>charFilePathBox</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>79</x>
-     <y>67</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>120</x>
-     <y>91</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>characterButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>browseButton3</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>66</x>
-     <y>63</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>635</x>
-     <y>94</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>environmentButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>envLabel</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>172</x>
-     <y>62</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>65</x>
-     <y>124</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>environmentButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>envFilePathBox</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>189</x>
-     <y>63</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>207</x>
-     <y>127</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>environmentButton</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>browseButton1</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>189</x>
-     <y>67</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>640</x>
-     <y>130</y>
     </hint>
    </hints>
   </connection>

@@ -1,3 +1,3 @@
-import src._create as cr
-reload(cr)
-Window = cr.LayoutCreator
+from src import ui
+reload(ui)
+Window = ui.LayoutCreator
