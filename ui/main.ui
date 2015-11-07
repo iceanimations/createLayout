@@ -106,7 +106,7 @@
          </size>
         </property>
         <property name="toolTip">
-         <string>Add selected objects to the Shot current camera represents</string>
+         <string>Add selected objects to the Shot current camera corresponds</string>
         </property>
         <property name="text">
          <string>Add</string>
