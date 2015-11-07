@@ -292,13 +292,8 @@ class LayoutCreator(Form, Base):
         seq = self.getSequence()
         if not seq: return
         try:
-            self.progressBar.setMaximum(len(shots))
-            self.progressBar.show()
-            for i, shot in enumerate(shots):
+            for shot in shots:
                 start, end = self.shots['_'.join([seq, shot])]
-                self.progressBar.setValue(i+1)
+                utils.addCamera('_'.join([seq.split('_')[-1], shot]), start, end)
         except Exception as ex:
             self.showMessage(msg=str(ex), icon=QMessageBox.Critical)
-        finally:
-            self.progressBar.hide()
-            utils.addCamera('_'.join([seq.split('_')[-1], shot]), start, end)
