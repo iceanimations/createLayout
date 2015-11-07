@@ -9,6 +9,10 @@ sys.path.append("R:/Pipe_Repo/Projects/TACTIC")
 import tactic_client_lib as tcl
 import qutil
 import addKeys
+import os.path as osp
+from shot_subm.src import backend as ss_be
+reload(ss_be)
+import re
 
 pc.mel.eval("source \"R:/Pipe_Repo/Users/Hussain/utilities/loader/command/mel/addInOutAttr.mel\";")
 
@@ -23,7 +27,7 @@ def setServer():
                                       project='test_mansour_ep')
     except Exception as ex:
         errors['Could not connect to TACTIC'] = str(ex)
-    return errors
+    return server, errors
         
 def getProjects():
     errors = {}
@@ -88,6 +92,56 @@ def getShots(seq):
     else:
         errors['Could not find the TACTIC server'] = ""
     return shots, errors
+
+def getAssetsInSeq(seq):
+    assets = []
+    errors = {}
+    if server:
+        try:
+            assets[:] = server.eval("@GET(vfx/asset_in_sequence['sequence_code', '%s'].asset_code)"%seq)
+        except Exception as ex:
+            errors['Could not retrieve assets from TACTIC for %s'%seq] = str(ex)
+    else:
+        errors['Could not find the TACTIC server'] = ""
+    return assets, errors
+
+def getAssetsInShot(shots):
+    assets = []
+    errors = {}
+    if server:
+        try:
+            assets[:] = server.query('vfx/asset_in_shot', filters=[('shot_code', shots)])
+        except Exception as ex:
+            errors['Could get the list assets in shots'] = str(ex)
+    else:
+        errors['Could not find the TACTIC server'] = ""
+    return assets, errors
+
+def addAssetsToShot(assets, shot):
+    errors = {}
+    if server:
+        data = [{'asset_code': asset, 'shot_code': shot} for asset in assets]
+        try:
+            server.insert_multiple('vfx/asset_in_shot', data)
+        except Exception as ex:
+            errors['Could not add Assets to TACTIC'] = str(ex)
+    else:
+        errors['Could not find the TACTIC server'] = ""
+    return errors
+
+def removeAssetFromShot(assets, shot):
+    pass
+
+def getCameraName():
+    return qutil.getNiceName(pc.lookThru(q=True))
+
+def getSelectedAssets():
+    geosets = ss_be.findAllConnectedGeosets()
+    for _set in geosets:
+        yield osp.splitext(osp.basename(str(qutil.getRefFromSet(_set).path)))[0].replace('_rig', '').replace('_shaded', '').replace('_model', '').replace('_combined', '')
+        
+def isSelection():
+    return pc.ls(sl=True)
 
 def addCamera(name, start, end):
     cam = qutil.addCamera(name)
