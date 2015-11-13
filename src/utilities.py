@@ -13,8 +13,16 @@ import os.path as osp
 from shot_subm.src import backend as ss_be
 reload(ss_be)
 import re
+import iutil.symlinks as symlinks
+import os
+from collections import Counter
 
 pc.mel.eval("source \"R:/Pipe_Repo/Users/Hussain/utilities/loader/command/mel/addInOutAttr.mel\";")
+
+class CCounter(Counter):
+    def update_count(self, c):
+        for key, value in c.items():
+            self[key] = value if self[key] < value else self[key]
 
 server = None
 
@@ -93,14 +101,55 @@ def getShots(seq):
         errors['Could not find the TACTIC server'] = ""
     return shots, errors
 
-def getAssetsInSeq(seq):
-    assets = []
+def getLatestFile(file1, file2):
+    latest = file1
+    if os.path.getmtime(file2) > os.path.getmtime(file1):
+        latest = file2
+    return latest
+
+def getAssetsInSeq(ep, seq):
+    assets = {}
     errors = {}
     if server:
         try:
-            assets[:] = server.eval("@GET(vfx/asset_in_sequence['sequence_code', '%s'].asset_code)"%seq)
+            maps = symlinks.getSymlinks(server.get_base_dirs()['win32_client_repo_dir'])
+        except Exception as ex:
+            errors['Could not retrieve the maps from TACTIC'] = str(ex)
+        try:
+            seqAssets = server.eval("@GET(vfx/asset_in_sequence['sequence_code', '%s'].asset_code)"%seq)
         except Exception as ex:
             errors['Could not retrieve assets from TACTIC for %s'%seq] = str(ex)
+        try:
+            epAssets = server.query('vfx/asset_in_episode', filters=[('asset_code', seqAssets), ('episode_code', ep)])
+        except Exception as ex:
+            errors['Could not retrieve asset from TACTIC for %s'%ep] = str(ex)
+        if not epAssets:
+            errors['No published Assets found in %s'%ep]
+        for epAsset in epAssets:
+            try:
+                snapshot = server.get_snapshot(epAsset, context='rig', version=0, versionless=True, include_paths_dict=True)
+            except Exception as ex:
+                errors['Could not get the Snapshot from TACTIC for %s'%epAsset['asset_code']] = str(ex)
+            #if not snapshot: snapshot = server.get_snapshot(ep_asset, context='shaded', version=0, versionless=True, include_paths_dict=True)
+            if snapshot:
+                paths = snapshot['__paths_dict__']
+                if paths:
+                    newPaths = None
+                    if paths.has_key('maya'):
+                        newPaths = paths['maya']
+                    elif paths.has_key('main'):
+                        newPaths = paths['main']
+                    else:
+                        errors['Could not find a Maya file for %s'%epAsset['asset_code']] = 'No Maya or Main key found'
+                    if newPaths:
+                        if len(newPaths) > 1:
+                            assets[epAsset['asset_code']] = symlinks.translatePath(getLatestFile(*newPaths), maps)
+                        else:
+                            assets[epAsset['asset_code']] = symlinks.translatePath(newPaths[0], maps)
+                    else:
+                        errors[epAsset['asset_code']] = 'No Maya file found'
+                else:
+                    errors[epAsset['asset_code']] = 'No Paths found to a file'
     else:
         errors['Could not find the TACTIC server'] = ""
     return assets, errors
@@ -130,7 +179,20 @@ def addAssetsToShot(assets, shot):
     return errors
 
 def removeAssetFromShot(assets, shot):
-    pass
+    errors = {}
+    if server:
+        try:
+            sobjects = server.query('vfx/asset_in_shot', filters=[('asset_code', assets), ('shot_code', shot)])
+            if sobjects:
+                for sobj in sobjects:
+                    server.delete_sobject(sobj['__search_key__'])
+            else:
+                errors['No Asset found on TACTIC for %s'%shot] = ''
+        except Exception as ex:
+            errors['Could not delete Assets from %s'%shot] = str(ex)
+    else:
+        errors['Could not find the TACTIC server'] = ""
+    return errors
 
 def getCameraName():
     return qutil.getNiceName(pc.lookThru(q=True))

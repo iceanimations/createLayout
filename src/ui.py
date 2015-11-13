@@ -4,189 +4,89 @@ Created on Jul 2, 2015
 @author: qurban.ali
 '''
 from uiContainer import uic
-from PyQt4.QtGui import QMessageBox, QListWidget, QAbstractItemView, QListWidgetItem, qApp
-from PyQt4.QtCore import QPropertyAnimation, QEasingCurve, QRect, Qt
+from PyQt4.QtGui import *
+from PyQt4.QtCore import *
 import cui
 import os.path as osp
 import qtify_maya_window as qtfy
 import appUsageApp
 import qutil
 import utilities as utils
-from pprint import pprint
+import traceback
 
+reload(addAssets)
 reload(utils)
 reload(qutil)
 reload(cui)
 
 root_path = osp.dirname(osp.dirname(__file__))
 ui_path = osp.join(root_path, 'ui')
+icon_path = osp.join(root_path, 'icon')
 __title__ = 'Create Layout Scene'
 
-Form, Base = uic.loadUiType(osp.join(ui_path, 'main.ui'))
+Form, Base = uic.loadUiType(osp.join(ui_path, 'main_dockable.ui'))
 class LayoutCreator(Form, Base):
     def __init__(self, parent=qtfy.getMayaWindow()):
         super(LayoutCreator, self).__init__(parent)
         self.setupUi(self)
         self.setWindowTitle(__title__)
+        borderColor = '#252525'
+        parent.setStyleSheet('QComboBox {\nborder-style: solid;\nborder-color: '+borderColor+';\nborder-width: 1px;\nborder-radius: 0px;\n}'+
+                           'QPushButton {\nborder-style: solid;\nborder-color: '+borderColor+';\nborder-width: 1px;\nborder-radius: 0px;'+
+                           '\nheight: 23;\nwidth: 75;\n}\nQPushButton:hover {\nbackground-color: #303030;\n}'+
+                           'QLineEdit {height: 23;\nborder-style: solid;\nborder-width: 1px;\nborder-color: '+borderColor+';\nborder-radius: 0px;\npadding-left: 15px;\npadding-bottom: 1px;}'+
+                           'QToolButton {\nborder-style: solid;\nborder-color: '+borderColor+';\nborder-width: 1px;\nborder-radius: 0px;\n}')
         
-        self.animation = QPropertyAnimation(self, 'geometry')
-        self.animation.setEasingCurve(QEasingCurve.Linear)
-        self.animation.setDuration(500)
+        self.flowLayout = cui.FlowLayout()
+        self.flowLayout.setSpacing(2)
+        self.mainLayout.insertLayout(0, self.flowLayout)
+        
+        self.projectBox = QComboBox(); self.projectBox.addItem('--Select Project--')
+        self.epBox = QComboBox(); self.epBox.addItem('--Select Episode--')
+        self.seqBox = QComboBox(); self.seqBox.addItem('--Select Sequence--')
+        self.projectBox.setMinimumSize(125, 25)
+        self.epBox.setMinimumSize(125, 25)
+        self.seqBox.setMinimumSize(125, 25)
         
         self.setServer()
         self.populateProjects()
-        self.tabWidget.hide()
-        self.progressBar.hide()
-        self.addButton.hide()
-        self.removeButton.hide()
         
         self.shots = {}
+        self.shotItems = []
+        self.assetPaths = {}
+        self.collapsed = True
+        
+        self.flowLayout.addWidget(self.projectBox)
+        self.flowLayout.addWidget(self.epBox)
+        self.flowLayout.addWidget(self.seqBox)
 
         self.projectBox.currentIndexChanged[str].connect(self.setProject)
         self.epBox.currentIndexChanged[str].connect(self.populateSequences)
         self.seqBox.currentIndexChanged[str].connect(self.populateShots)
         self.createButton.clicked.connect(self.create)
-        self.addAssetsButton.clicked.connect(self.showAddAssetsWindow)
-        self.shotPlannerButton.clicked.connect(self.showShotPlanner)
-        self.addButton.clicked.connect(self.addShotAssets)
-        self.removeButton.clicked.connect(self.removeShotAssets)
+        self.toggleCollapseButton.clicked.connect(self.toggleItems)
         
-        self.shotBox = cui.MultiSelectComboBox(self, '--Select Shots--')
-        self.shotBox.setMinimumWidth(75)
-        self.shotBox.setToolTip('Select Shots to create camera for. To create all, leave all unselected')
-        self.btnsLayout.insertWidget(2, self.shotBox)
-        self.tabWidget.removeTab(0)
-        self.tabWidget.removeTab(0)
+        self.shotBox = cui.MultiSelectComboBox(self, '--Shots--')
+        self.shotBox.setStyleSheet('QPushButton{min-width: 100px;}')
+        self.shotBox.selectionDone.connect(self.toggleShotPlanner)
+        self.searchLayout.insertWidget(0, self.shotBox)
+        parent.addDockWidget(0x1, self)
+        self.toggleCollapseButton.setIcon(QIcon(osp.join(icon_path, 'ic_toggle_collapse')))
+        search_ic_path = osp.join(icon_path, 'ic_search.png').replace('\\','/')
+        style_sheet = ('\nbackground-image: url(%s);'+
+                       '\nbackground-repeat: no-repeat;'+
+                       '\nbackground-position: center left;')%search_ic_path
+        style_sheet = self.searchBox.styleSheet() + style_sheet
+        self.searchBox.setStyleSheet(style_sheet)
         appUsageApp.updateDatabase('createLayout')
         
-    def setStatus(self, msg):
-        self.statusLabel.setText(msg)
-        qApp.processEvents()
+    def toggleItems(self):
+        self.collapsed = not self.collapsed
+        for item in self.shotItems:
+            item.toggleCollapse(self.collapsed)
     
-    def addShotAssets(self):
-        #TODO: add security
-        if not utils.isSelection():
-            self.showMessage(msg='No object found in the selection',
-                             icon=QMessageBox.Information)
-            return
-        self.setStatus('Creating names for selected Assets')
-        assets = utils.getSelectedAssets()
-        if not assets:
-            self.showMessage(msg='Could not create the names for the selected assets',
-                             icon=QMessageBox.Critical)
-            self.setStatus('')
-            return
-        shotCode = '_'.join([self.getEpisode(), utils.getCameraName()]).upper()
-        shotName = shotCode.split('_')[-1]
-        tab = None
-        self.setStatus('Finding the Shot for the current camera')
-        for i in range(self.tabWidget.count()):
-            if self.tabWidget.tabText(i) == shotName:
-                self.tabWidget.setCurrentIndex(i)
-                tab = self.tabWidget.currentWidget()
-                break
-        if tab is None:
-            self.showMessage(msg='Could not find the Shot for current camera',
-                             icon=QMessageBox.Critical)
-            self.setStatus('')
-            return
-        self.setStatus('Finding Assets for selected Sequence')
-        seq = self.getSequence()
-        if not seq:
-            self.showMessage(msg='No Sequence selected to retrieve the assets for',
-                             icon=QMessageBox.Warning)
-            self.setStatus('')
-            return
-        seqAssets, errors = utils.getAssetsInSeq(seq)
-        if errors:
-            self.showMessage(msg='Error occurred while retrieving assets',
-                             icon=QMessageBox.Critical,
-                             details=qutil.dictionaryToDetails(errors))
-        if not seqAssets:
-            self.showMessage(msg='Could not find the Assets for selected Sequence on TACTIC',
-                             icon=QMessageBox.Critical)
-            self.setStatus('')
-            return
-        if assets:
-            self.setStatus('Adding Assets to the Shot')
-            assets = list(assets)
-            if not set(assets).issubset(set(seqAssets)):
-                details = '%s doesn\'t contain the following selected Assets\n'%seq
-                for ast in set(assets).difference(set(seqAssets)):
-                    details += '\n%s'%ast
-                btn = self.showMessage(msg='Not all selected Assets found in the selected Sequence',
-                                       ques='Add only the Assets matching to the Assets in the selected Sequence?',
-                                       icon=QMessageBox.Warning,
-                                       details=details,
-                                       btns=QMessageBox.Yes|QMessageBox.No)
-                if btn == QMessageBox.Yes:
-                    assets = set(assets).intersection(set(seqAssets))
-                else:
-                    self.setStatus('')
-                    return
-            errors = utils.addAssetsToShot(assets, shotCode)
-            if errors:
-                self.showMessage(msg='Error occurred while adding Assets to TACTIC',
-                                 icon=QMessageBox.Critical,
-                                 details=qutil.dictionaryToDetails(errors))
-                self.setStatus('')
-                return
-            tab.clearSelection()
-            for asset in assets:
-                item = QListWidgetItem(asset, tab)
-                item.setSelected(True)
-        self.setStatus('')
-    
-    def removeShotAssets(self):
-        print self.tabWidget.currentWidget()
-        
-    def showShotPlanner(self):
-        pos = self.pos()
-        height = self.height()
-        if self.shotPlannerButton.isChecked() and self.getSequence():
-            if height < 451:
-                self.animation.setStartValue(QRect(pos.x()+8, pos.y()+30, self.width(), height))
-                self.animation.setEndValue(QRect(pos.x()+8, pos.y()+30, self.width(), 450))
-                self.animation.start()
-            self.tabWidget.show()
-            self.addButton.show()
-            #self.removeButton.show()
-            self.populateShotPlanner()
-        else:
-            self.tabWidget.hide()
-            self.addButton.hide()
-            self.removeButton.hide()
-            if self.height > 122:
-                self.animation.setStartValue(QRect(pos.x()+8, pos.y()+30, self.width(), height))
-                self.animation.setEndValue(QRect(pos.x()+8, pos.y()+30, self.width(), 100))
-                self.animation.start()
-            
-    def populateShotPlanner(self):
-        try:
-            self.tabWidget.clear()
-            shots = ['_'.join([self.getSequence(), shot]) for shot in self.shotBox.getItems()]
-            self.setStatus('Retrieving assets from TACTIC')
-            assets, errors = utils.getAssetsInShot(shots)
-            if errors:
-                self.showMessage(msg='Error occurred while retrieving assets for shots',
-                                 icon=QMessageBox.Critical,
-                                 details=qutil.dictionaryToDetails(errors))
-            shots = [shot.split('_')[-1] for shot in shots]
-            self.progressBar.setMaximum(len(shots))
-            self.progressBar.show()
-            for i, shot in enumerate(shots):
-                listWidget = QListWidget(self)
-                listWidget.setFocusPolicy(Qt.NoFocus)
-                listWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
-                if assets:
-                    listWidget.addItems([asset.get('asset_code') for asset in assets if asset.get('shot_code').endswith(shot)])
-                self.tabWidget.addTab(listWidget, shot)
-                self.progressBar.setValue(i+1)
-        except Exception as ex:
-            self.showMessage(msg=str(ex), icon=QMessageBox.Critical)
-        finally:
-            self.setStatus('')
-            self.progressBar.hide()
+    def getSelectedAssets(self):
+        return [item.text() for item in self.seqAssetBox.selectedItems()]
         
     def setServer(self):
         self.server, errors = utils.setServer()
@@ -208,7 +108,6 @@ class LayoutCreator(Form, Base):
     def setProject(self, project):
         self.epBox.clear()
         self.epBox.addItem('--Select Episode--')
-        self.showShotPlanner()
         if project != '--Select Project--':
             errors = utils.setProject(project)
             if errors:
@@ -218,44 +117,95 @@ class LayoutCreator(Form, Base):
             self.populateEpisodes()
     
     def populateEpisodes(self):
-        episodes, errors = utils.getEpisodes()
-        if errors:
-            self.showMessage(msg='Error occurred while retrieving the Episodes',
-                             icon=QMessageBox.Critical,
-                             details=qutil.dictionaryToDetails(errors))
-        self.epBox.addItems(episodes)
-    
-    def populateSequences(self, ep):
-        self.seqBox.clear()
-        self.seqBox.addItem('--Select Sequence--')
-        self.showShotPlanner()
-        if ep != '--Select Episode--':
-            seqs, errors = utils.getSequences(ep)
+        qApp.setOverrideCursor(Qt.WaitCursor)
+        try:
+            episodes, errors = utils.getEpisodes()
             if errors:
-                self.showMessage(msg='Error occurred while retrieving the Sequences',
+                self.showMessage(msg='Error occurred while retrieving the Episodes',
                                  icon=QMessageBox.Critical,
                                  details=qutil.dictionaryToDetails(errors))
-            self.seqBox.addItems(seqs)
-        
-    def showAddAssetsWindow(self):
-        import addAssets
-        reload(addAssets)
-        addAssets.Window(self, self.server).show()
-        
+            self.epBox.addItems(episodes)
+        except Exception as ex:
+            qApp.restoreOverrideCursor()
+            self.showMessage(msg=str(ex), icon=QMessageBox.Critical)
+        finally:
+            qApp.restoreOverrideCursor()
+    
+    def populateSequences(self, ep):
+        qApp.setOverrideCursor(Qt.WaitCursor)
+        try:
+            self.seqBox.clear()
+            self.seqBox.addItem('--Select Sequence--')
+            if ep != '--Select Episode--':
+                seqs, errors = utils.getSequences(ep)
+                if errors:
+                    self.showMessage(msg='Error occurred while retrieving the Sequences',
+                                     icon=QMessageBox.Critical,
+                                     details=qutil.dictionaryToDetails(errors))
+                self.seqBox.addItems(seqs)
+        except Exception as ex:
+            qApp.restoreOverrideCursor()
+            self.showMessage(msg=str(ex), icon=QMessageBox.Critical)
+        finally:
+            qApp.restoreOverrideCursor()
+
     def populateShots(self, seq):
-        self.shots.clear()
-        self.shotBox.clearItems()
-        if seq == '--Select Sequence--': self.showShotPlanner(); return
-        shots, errors = utils.getShots(seq)
-        self.shots.update(shots)
+        errors = {}
+        qApp.setOverrideCursor(Qt.WaitCursor)
+        try:
+            self.shots.clear()
+            for item in self.shotItems:
+                item.deleteLater()
+            del self.shotItems[:]
+            self.shotBox.clearItems()
+            self.assetPaths.clear()
+            self.seqAssetBox.clear()
+            if seq == '--Select Sequence--' or not seq: return
+            shots, err = utils.getShots(seq)
+            errors.update(self.populateSequenceAssets(seq))
+            self.shots.update(shots)
+            errors.update(self.populateShotPlanner())
+            errors.update(err)
+            if not shots: return
+            shots = [shot.split('_')[-1] for shot in shots.keys()]
+            self.shotBox.addItems(shots)
+        except Exception as ex:
+            traceback.print_exc()
+            qApp.restoreOverrideCursor()
+            self.showMessage(msg=str(ex), icon=QMessageBox.Critical)
+        finally:
+            qApp.restoreOverrideCursor()
         if errors:
-            self.showMessage(msg='Error occurred while retrieving shots',
-                             details=qutil.dictionaryToDetails(errors),
-                             icon=QMessageBox.Critical)
-        if not shots: return
-        shots = [shot.split('_')[-1] for shot in shots.keys()]
-        self.shotBox.addItems(shots)
-        self.showShotPlanner()
+            self.showMessage(msg='Error occurred while retrieving Assets for selected Sequence',
+                             icon=QMessageBox.Critical,
+                             details=qutil.dictionaryToDetails(errors))
+        
+    def populateSequenceAssets(self, seq):
+        assets, errors = utils.getAssetsInSeq(self.getEpisode(), seq)
+        if assets:
+            for asset, path in assets.items():
+                self.seqAssetBox.addItem(asset)
+                self.assetPaths[asset] = path
+        return errors
+        
+    def populateShotPlanner(self):
+        shots = sorted(self.shots.keys())
+        assets, errors = utils.getAssetsInShot(shots)
+        for shot in shots:
+            item = Item(self, title=shot.split('_')[-1], name=shot)
+            if assets:
+                item.addItems([asset['asset_code'] for asset in assets if asset['shot_code'] == shot])
+            self.shotItems.append(item)
+            self.itemsLayout.addWidget(item)
+            item.hide()
+        return errors
+        
+    def toggleShotPlanner(self, shots):
+        for item in self.shotItems:
+            if item.getTitle() in shots:
+                item.show()
+            else: item.hide()
+            
         
     def showMessage(self, **kwargs):
         return cui.showMessage(self, __title__, **kwargs)
@@ -282,18 +232,130 @@ class LayoutCreator(Form, Base):
         return ep
         
     def create(self):
-        shots = self.shotBox.getSelectedItems()
-        if not shots:
-            shots = self.shotBox.getItems()
-        if not shots:
-            self.showMessage(msg='No Shots selected to create camera for',
-                             icon=QMessageBox.Warning)
-            return
-        seq = self.getSequence()
-        if not seq: return
         try:
-            for shot in shots:
-                start, end = self.shots['_'.join([seq, shot])]
-                utils.addCamera('_'.join([seq.split('_')[-1], shot]), start, end)
+            shots = self.shotBox.getSelectedItems()
+            if not shots:
+                self.showMessage(msg='No Shot selected to create camera for',
+                                 icon=QMessageBox.Warning)
+                return
+            errors = {}
+            goodAssets = utils.CCounter()
+            for item in [x for x in self.shotItems if x.getTitle() in shots]:
+                assets = item.getItems()
+                if assets:
+                    goodAssets.update_count(utils.CCounter(assets))
+            if goodAssets:
+                for asset, num in goodAssets.items():
+                    for _ in range(num):
+                        try:
+                            qutil.addRef(self.assetPaths[asset])
+                        except KeyError:
+                            errors['Asset %s not found in Sequence or Episode Assets'%asset] = ''
+            seq = self.getSequence()
+            try:
+                for shot in shots:
+                    start, end = self.shots['_'.join([seq, shot])]
+                    utils.addCamera('_'.join([seq.split('_')[-1], shot]), start, end)
+            except Exception as ex:
+                self.showMessage(msg=str(ex), icon=QMessageBox.Critical)
         except Exception as ex:
             self.showMessage(msg=str(ex), icon=QMessageBox.Critical)
+            
+            
+Form2, Base2 = uic.loadUiType(osp.join(ui_path, 'shot_item.ui'))
+class Item(Form2, Base2):
+    def __init__(self, parent=None, title='', name=''):
+        super(Item, self).__init__(parent)
+        self.setupUi(self)
+        self.removeButton.hide()
+        self.parentWin = parent
+        self.collapsed = False
+        self.name = name
+        self.assets = {}
+        if title: self.setTitle(title)
+        self.style = ('background-image: url(%s);\n'+
+                      'background-repeat: no-repeat;\n'+
+                      'background-position: center right')
+
+        self.iconLabel.setStyleSheet(self.style%osp.join(icon_path,
+                                                         'ic_collapse.png').replace('\\', '/'))
+        self.removeButton.setIcon(QIcon(osp.join(icon_path, 'ic_remove_char.png')))
+        self.addButton.setIcon(QIcon(osp.join(icon_path, 'ic_add_char.png')))
+
+        self.titleFrame.mouseReleaseEvent = self.collapse
+        self.addButton.clicked.connect(self.addSelectedItems)
+        self.removeButton.clicked.connect(self.removeItems)
+
+    def collapse(self, event=None):
+        if self.collapsed:
+            self.listBox.show()
+            self.collapsed = False
+            path = osp.join(icon_path, 'ic_collapse.png')
+        else:
+            self.listBox.hide()
+            self.collapsed = True
+            path = osp.join(icon_path, 'ic_expand.png')
+        path = path.replace('\\', '/')
+        self.iconLabel.setStyleSheet(self.style%path)
+
+    def toggleCollapse(self, state):
+        self.collapsed = state
+        self.collapse()
+
+    def getTitle(self):
+        return str(self.nameLabel.text())
+    
+    def setTitle(self, title):
+        self.nameLabel.setText(title)
+        
+    def addAssetsToTactic(self, assets):
+        flag = False
+        qApp.setOverrideCursor(Qt.WaitCursor)
+        try:
+            errors = utils.addAssetsToShot(assets, self.name)
+            if errors:
+                self.parentWin.showMessage(msg='Error occurred while adding Assets to %s'%self.name,
+                                           icon=QMessageBox.Critical,
+                                           details=qutil.dictionaryToDetails(errors))
+            else:
+                flag = True
+        except Exception as ex:
+            qApp.restoreOverrideCursor()
+            self.parentWin.showMessage(msg=str(ex), icon=QMessageBox.Critical)
+        finally:
+            qApp.restoreOverrideCursor()
+        return flag
+        
+    def addItems(self, items):
+        self.listBox.addItems(items)
+        
+    def addSelectedItems(self):
+        assets = self.parentWin.getSelectedAssets()
+        if not assets: return
+        if self.addAssetsToTactic(assets):
+            self.listBox.addItems(assets)
+    
+    def removeItems(self):
+        qApp.setOverrideCursor(Qt.WaitCursor)
+        try:
+            assets = self.listBox.selectedItems()
+            if assets:
+                errors = utils.removeAssetFromShot([item.text() for item in assets], self.name)
+                if errors:
+                    self.parentWin.showMessage(msg='Error occurred while Removing Assets from %s'%self.name,
+                                               icon=QMessageBox.Critical,
+                                               details=qutil.dictionaryToDetails(errors))
+                    return
+                for item in assets:
+                    self.listBox.takeItem(self.listBox.row(item))
+        except Exception as ex:
+            qApp.restoreOverrideCursor()
+            self.parentWin.showMessage(msg=str(ex), icon=QMessageBox.Critical)
+        finally:
+            qApp.restoreOverrideCursor()
+            
+    def getItems(self):
+        items = []
+        for i in range(self.listBox.count()):
+            items.append(self.listBox.item(i).text())
+        return items
