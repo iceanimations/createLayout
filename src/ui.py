@@ -30,7 +30,7 @@ class LayoutCreator(Form, Base):
         self.setupUi(self)
         self.setWindowTitle(__title__)
         borderColor = '#252525'
-        parent.setStyleSheet('QComboBox {\nborder-style: solid;\nborder-color: '+borderColor+';\nborder-width: 1px;\nborder-radius: 0px;\n}'+
+        self.setStyleSheet('QComboBox {\nborder-style: solid;\nborder-color: '+borderColor+';\nborder-width: 1px;\nborder-radius: 0px;\n}'+
                            'QPushButton {\nborder-style: solid;\nborder-color: '+borderColor+';\nborder-width: 1px;\nborder-radius: 0px;'+
                            '\nheight: 23;\nwidth: 75;\n}\nQPushButton:hover {\nbackground-color: #303030;\n}'+
                            'QLineEdit {height: 23;\nborder-style: solid;\nborder-width: 1px;\nborder-color: '+borderColor+';\nborder-radius: 0px;\npadding-left: 15px;\npadding-bottom: 1px;}'+
