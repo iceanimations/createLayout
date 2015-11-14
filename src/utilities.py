@@ -119,12 +119,14 @@ def getAssetsInSeq(ep, seq):
             seqAssets = server.eval("@GET(vfx/asset_in_sequence['sequence_code', '%s'].asset_code)"%seq)
         except Exception as ex:
             errors['Could not retrieve assets from TACTIC for %s'%seq] = str(ex)
+        if not seqAssets:
+            errors['No Asset found in %s'%seq] = ''
         try:
             epAssets = server.query('vfx/asset_in_episode', filters=[('asset_code', seqAssets), ('episode_code', ep)])
         except Exception as ex:
             errors['Could not retrieve asset from TACTIC for %s'%ep] = str(ex)
         if not epAssets:
-            errors['No published Assets found in %s'%ep]
+            errors['No published Assets found in %s'%ep] = ''
         for epAsset in epAssets:
             try:
                 snapshot = server.get_snapshot(epAsset, context='rig', version=0, versionless=True, include_paths_dict=True)
@@ -179,13 +181,23 @@ def addAssetsToShot(assets, shot):
     return errors
 
 def removeAssetFromShot(assets, shot):
+    assetCount = Counter(assets)
     errors = {}
     if server:
         try:
-            sobjects = server.query('vfx/asset_in_shot', filters=[('asset_code', assets), ('shot_code', shot)])
+            sobjects = server.query('vfx/asset_in_shot')
             if sobjects:
-                for sobj in sobjects:
-                    server.delete_sobject(sobj['__search_key__'])
+                sks = []
+                for asset, cnt in assetCount.items():
+                    for _ in range(cnt):
+                        for sobj in sobjects:
+                            if sobj['asset_code'] == asset and sobj['shot_code'] == shot:
+                                if sobj['__search_key__'] not in sks:
+                                    sks.append(sobj['__search_key__'])
+                                    break
+                if sks:
+                    for sk in sks:
+                        server.delete_sobject(sk)
             else:
                 errors['No Asset found on TACTIC for %s'%shot] = ''
         except Exception as ex:

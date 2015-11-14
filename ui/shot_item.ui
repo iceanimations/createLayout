@@ -60,7 +60,7 @@
       <item>
        <widget class="QLabel" name="numLabel">
         <property name="text">
-         <string>Num</string>
+         <string>(0)</string>
         </property>
        </widget>
       </item>
@@ -80,7 +80,7 @@
       <item>
        <widget class="QToolButton" name="addButton">
         <property name="toolTip">
-         <string>Add selected assets to this shot</string>
+         <string>Add selected assets</string>
         </property>
         <property name="text">
          <string>...</string>

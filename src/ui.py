@@ -32,7 +32,7 @@ class LayoutCreator(Form, Base):
         borderColor = '#252525'
         self.setStyleSheet('QComboBox {\nborder-style: solid;\nborder-color: '+borderColor+';\nborder-width: 1px;\nborder-radius: 0px;\n}'+
                            'QPushButton {\nborder-style: solid;\nborder-color: '+borderColor+';\nborder-width: 1px;\nborder-radius: 0px;'+
-                           '\nheight: 23;\nwidth: 75;\n}\nQPushButton:hover {\nbackground-color: #303030;\n}'+
+                           '\nheight: 23;\nwidth: 75;\n}\nQPushButton:hover, QToolButton:hover {\nbackground-color: #303030;\n}'+
                            'QLineEdit {height: 23;\nborder-style: solid;\nborder-width: 1px;\nborder-color: '+borderColor+';\nborder-radius: 0px;\npadding-left: 15px;\npadding-bottom: 1px;}'+
                            'QToolButton {\nborder-style: solid;\nborder-color: '+borderColor+';\nborder-width: 1px;\nborder-radius: 0px;\n}')
         
@@ -308,7 +308,6 @@ class Item(Form2, Base2):
     def __init__(self, parent=None, title='', name=''):
         super(Item, self).__init__(parent)
         self.setupUi(self)
-        self.removeButton.hide()
         self.parentWin = parent
         self.collapsed = False
         self.name = name
