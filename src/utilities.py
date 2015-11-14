@@ -194,6 +194,21 @@ def removeAssetFromShot(assets, shot):
         errors['Could not find the TACTIC server'] = ""
     return errors
 
+def getRefsCount():
+    refCounts = Counter()
+    refs = [osp.normpath(str(x.path)) for x in qutil.getReferences()]
+    if refs:
+        refCounts.update(refs)
+    return refCounts
+
+def getExistingCameraNames():
+    names = []
+    cams = pc.ls(type='camera')
+    for cam in cams:
+        names.append(qutil.getNiceName(cam.firstParent().name()).split('_')[-1])
+    return names
+    
+
 def getCameraName():
     return qutil.getNiceName(pc.lookThru(q=True))
 

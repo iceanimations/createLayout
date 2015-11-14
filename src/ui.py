@@ -14,7 +14,6 @@ import qutil
 import utilities as utils
 import traceback
 
-reload(addAssets)
 reload(utils)
 reload(qutil)
 reload(cui)
@@ -65,6 +64,7 @@ class LayoutCreator(Form, Base):
         self.seqBox.currentIndexChanged[str].connect(self.populateShots)
         self.createButton.clicked.connect(self.create)
         self.toggleCollapseButton.clicked.connect(self.toggleItems)
+        self.searchBox.textChanged.connect(self.searchItems)
         
         self.shotBox = cui.MultiSelectComboBox(self, '--Shots--')
         self.shotBox.setStyleSheet('QPushButton{min-width: 100px;}')
@@ -205,6 +205,7 @@ class LayoutCreator(Form, Base):
             if item.getTitle() in shots:
                 item.show()
             else: item.hide()
+            self.searchItems()
             
         
     def showMessage(self, **kwargs):
@@ -230,6 +231,21 @@ class LayoutCreator(Form, Base):
         if ep == '--Select Episode--':
             ep = ''
         return ep
+    
+    def searchItems(self, text=''):
+        if not text:
+            text = self.searchBox.text()
+        if text:
+            for item in self.shotItems:
+                if text.lower() in item.getTitle().lower() and item.getTitle() in self.shotBox.getSelectedItems():
+                    item.show()
+                else: item.hide()
+        else:
+            for item in self.shotItems:
+                if item.getTitle() in self.shotBox.getSelectedItems():
+                    item.show()
+                else:
+                    item.hide()
         
     def create(self):
         try:
@@ -238,26 +254,51 @@ class LayoutCreator(Form, Base):
                 self.showMessage(msg='No Shot selected to create camera for',
                                  icon=QMessageBox.Warning)
                 return
-            errors = {}
             goodAssets = utils.CCounter()
             for item in [x for x in self.shotItems if x.getTitle() in shots]:
                 assets = item.getItems()
+                assets = [osp.normpath(self.assetPaths[asset]) for asset in assets] 
                 if assets:
                     goodAssets.update_count(utils.CCounter(assets))
+                else:
+                    self.showMessage(msg='%s selected but not Asset added'%item.getTitle(),
+                                     icon=QMessageBox.Information)
+                    return
+            extraRefs = {}
             if goodAssets:
+                goodAssets.subtract(utils.getRefsCount())
+                flag = True
                 for asset, num in goodAssets.items():
-                    for _ in range(num):
-                        try:
-                            qutil.addRef(self.assetPaths[asset])
-                        except KeyError:
-                            errors['Asset %s not found in Sequence or Episode Assets'%asset] = ''
+                    if num > 0:
+                        flag = False
+                        for _ in range(num):
+                            qutil.addRef(asset)
+                    elif num == 0:
+                        pass
+                    else:
+                        flag = False
+                        extraRefs[asset] = num * -1
+                if flag:
+                    self.showMessage(msg='No new updates found for the Assets',
+                                     icon=QMessageBox.Information)
             seq = self.getSequence()
             try:
+                for cam in utils.getExistingCameraNames():
+                    try:
+                        shots.remove(cam)
+                    except ValueError:
+                        pass
                 for shot in shots:
                     start, end = self.shots['_'.join([seq, shot])]
                     utils.addCamera('_'.join([seq.split('_')[-1], shot]), start, end)
             except Exception as ex:
                 self.showMessage(msg=str(ex), icon=QMessageBox.Critical)
+            if extraRefs:
+                details = ''
+                for key, val in extraRefs.items():
+                    details += ': '.join([key, str(val)]) + '\n\n'
+                self.showMessage(msg='There are some extra References in this scene, please remove them before proceeding',
+                                 details=details, icon=QMessageBox.Information)
         except Exception as ex:
             self.showMessage(msg=str(ex), icon=QMessageBox.Critical)
             
