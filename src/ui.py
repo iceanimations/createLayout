@@ -349,6 +349,9 @@ class Item(Form2, Base2):
     def setTitle(self, title):
         self.nameLabel.setText(title)
         
+    def updateNum(self):
+        self.numLabel.setText('('+ str(self.listBox.count()) +')')
+        
     def addAssetsToTactic(self, assets):
         flag = False
         qApp.setOverrideCursor(Qt.WaitCursor)
@@ -369,12 +372,14 @@ class Item(Form2, Base2):
         
     def addItems(self, items):
         self.listBox.addItems(items)
+        self.updateNum()
         
     def addSelectedItems(self):
         assets = self.parentWin.getSelectedAssets()
         if not assets: return
         if self.addAssetsToTactic(assets):
             self.listBox.addItems(assets)
+        self.updateNum()
     
     def removeItems(self):
         qApp.setOverrideCursor(Qt.WaitCursor)
@@ -394,6 +399,7 @@ class Item(Form2, Base2):
             self.parentWin.showMessage(msg=str(ex), icon=QMessageBox.Critical)
         finally:
             qApp.restoreOverrideCursor()
+        self.updateNum()
             
     def getItems(self):
         items = []
