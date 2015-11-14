@@ -316,6 +316,9 @@ class Item(Form2, Base2):
         self.style = ('background-image: url(%s);\n'+
                       'background-repeat: no-repeat;\n'+
                       'background-position: center right')
+        
+        if qutil.getUsername() not in ['qurban.ali', 'talha.ahmed', 'mohammad.bilal', 'umair.shahid', 'sarmad.mushtaq']:
+            self.removeButton.setEnabled(False); self.addButton.setEnabled(False)
 
         self.iconLabel.setStyleSheet(self.style%osp.join(icon_path,
                                                          'ic_collapse.png').replace('\\', '/'))
