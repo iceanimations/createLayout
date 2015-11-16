@@ -261,9 +261,10 @@ class LayoutCreator(Form, Base):
                 if assets:
                     goodAssets.update_count(utils.CCounter(assets))
                 else:
-                    self.showMessage(msg='%s selected but not Asset added'%item.getTitle(),
-                                     icon=QMessageBox.Information)
-                    return
+                    if not item.isEmpty():
+                        self.showMessage(msg='%s selected but not Asset added'%item.getTitle(),
+                                         icon=QMessageBox.Information)
+                        return
             extraRefs = {}
             if goodAssets:
                 goodAssets.subtract(utils.getRefsCount())
@@ -316,10 +317,12 @@ class Item(Form2, Base2):
         self.style = ('background-image: url(%s);\n'+
                       'background-repeat: no-repeat;\n'+
                       'background-position: center right')
-        
-        if qutil.getUsername() not in ['qurban.ali', 'talha.ahmed', 'mohammad.bilal', 'umair.shahid', 'sarmad.mushtaq']:
-            self.removeButton.setEnabled(False); self.addButton.setEnabled(False)
 
+        if self.userAllowed():
+            self.removeButton.setEnabled(False);
+            self.addButton.setEnabled(False)
+            self.emptyButton.setEnabled(False)
+        
         self.iconLabel.setStyleSheet(self.style%osp.join(icon_path,
                                                          'ic_collapse.png').replace('\\', '/'))
         self.removeButton.setIcon(QIcon(osp.join(icon_path, 'ic_remove_char.png')))
@@ -328,6 +331,17 @@ class Item(Form2, Base2):
         self.titleFrame.mouseReleaseEvent = self.collapse
         self.addButton.clicked.connect(self.addSelectedItems)
         self.removeButton.clicked.connect(self.removeItems)
+        self.emptyButton.toggled.connect(self.checkAssets)
+        
+    def userAllowed(self):
+        if qutil.getUsername() in ['qurban.ali', 'talha.ahmed', 'mohammad.bilal', 'umair.shahid', 'sarmad.mushtaq']:
+            return True
+        
+    def checkAssets(self, val):
+        if val and self.getItems():
+            self.parentWin.showMessage(msg='Could not mark as Empty Shot, remove the Assets',
+                                       icon=QMessageBox.Warning)
+            self.emptyButton.setChecked(False)
 
     def collapse(self, event=None):
         if self.collapsed:
@@ -340,6 +354,9 @@ class Item(Form2, Base2):
             path = osp.join(icon_path, 'ic_expand.png')
         path = path.replace('\\', '/')
         self.iconLabel.setStyleSheet(self.style%path)
+        
+    def isEmpty(self):
+        return self.emptyButton.isChecked()
 
     def toggleCollapse(self, state):
         self.collapsed = state
