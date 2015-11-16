@@ -78,6 +78,7 @@ class LayoutCreator(Form, Base):
                        '\nbackground-position: center left;')%search_ic_path
         style_sheet = self.searchBox.styleSheet() + style_sheet
         self.searchBox.setStyleSheet(style_sheet)
+        self.splitter_2.setSizes([(self.height() * 30) / 100, (self.height() * 50) / 100])
         appUsageApp.updateDatabase('createLayout')
         
     def toggleItems(self):
