@@ -130,9 +130,12 @@ def getAssetsInSeq(ep, seq):
         for epAsset in epAssets:
             try:
                 snapshot = server.get_snapshot(epAsset, context='rig', version=0, versionless=True, include_paths_dict=True)
+                context = 'rig'
             except Exception as ex:
                 errors['Could not get the Snapshot from TACTIC for %s'%epAsset['asset_code']] = str(ex)
-            #if not snapshot: snapshot = server.get_snapshot(ep_asset, context='shaded', version=0, versionless=True, include_paths_dict=True)
+            if not snapshot:
+                snapshot = server.get_snapshot(epAsset, context='model', version=0, versionless=True, include_paths_dict=True)
+                context = 'model'
             if snapshot:
                 paths = snapshot['__paths_dict__']
                 if paths:
@@ -145,9 +148,9 @@ def getAssetsInSeq(ep, seq):
                         errors['Could not find a Maya file for %s'%epAsset['asset_code']] = 'No Maya or Main key found'
                     if newPaths:
                         if len(newPaths) > 1:
-                            assets[epAsset['asset_code']] = symlinks.translatePath(getLatestFile(*newPaths), maps)
+                            assets[epAsset['asset_code']] = [context, symlinks.translatePath(getLatestFile(*newPaths), maps)]
                         else:
-                            assets[epAsset['asset_code']] = symlinks.translatePath(newPaths[0], maps)
+                            assets[epAsset['asset_code']] = [context, symlinks.translatePath(newPaths[0], maps)]
                     else:
                         errors[epAsset['asset_code']] = 'No Maya file found'
                 else:

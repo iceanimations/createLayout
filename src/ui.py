@@ -86,7 +86,7 @@ class LayoutCreator(Form, Base):
             item.toggleCollapse(self.collapsed)
     
     def getSelectedAssets(self):
-        return [item.text() for item in self.seqAssetBox.selectedItems()]
+        return [item.text() for item in self.rigBox.selectedItems()]
         
     def setServer(self):
         self.server, errors = utils.setServer()
@@ -159,7 +159,7 @@ class LayoutCreator(Form, Base):
             del self.shotItems[:]
             self.shotBox.clearItems()
             self.assetPaths.clear()
-            self.seqAssetBox.clear()
+            self.rigBox.clear()
             if seq == '--Select Sequence--' or not seq: return
             shots, err = utils.getShots(seq)
             errors.update(self.populateSequenceAssets(seq))
@@ -183,8 +183,12 @@ class LayoutCreator(Form, Base):
     def populateSequenceAssets(self, seq):
         assets, errors = utils.getAssetsInSeq(self.getEpisode(), seq)
         if assets:
-            for asset, path in assets.items():
-                self.seqAssetBox.addItem(asset)
+            for asset, values in assets.items():
+                context, path = values
+                if context == 'rig':
+                    self.rigBox.addItem(asset)
+                else:
+                    self.modelBox.addItem(asset)
                 self.assetPaths[asset] = path
         return errors
         
@@ -246,11 +250,14 @@ class LayoutCreator(Form, Base):
                     item.show()
                 else:
                     item.hide()
+                
+    def getModels(self):
+        return [item.text() for item in self.modelBox.selectedItems()]
         
     def create(self):
         try:
             shots = self.shotBox.getSelectedItems()
-            if not shots:
+            if not (shots or self.getModels()):
                 self.showMessage(msg='No Shot selected to create camera for',
                                  icon=QMessageBox.Warning)
                 return
@@ -265,6 +272,7 @@ class LayoutCreator(Form, Base):
                         self.showMessage(msg='%s selected but not Asset added'%item.getTitle(),
                                          icon=QMessageBox.Information)
                         return
+            goodAssets.update([osp.normpath(self.assetPaths[asset]) for asset in self.getModels()])
             extraRefs = {}
             if goodAssets:
                 goodAssets.subtract(utils.getRefsCount())
@@ -282,23 +290,24 @@ class LayoutCreator(Form, Base):
                 if flag:
                     self.showMessage(msg='No new updates found for the Assets',
                                      icon=QMessageBox.Information)
-            seq = self.getSequence()
-            try:
-                for cam in utils.getExistingCameraNames():
-                    try:
-                        shots.remove(cam)
-                    except ValueError:
-                        pass
-                for shot in shots:
-                    start, end = self.shots['_'.join([seq, shot])]
-                    utils.addCamera('_'.join([seq.split('_')[-1], shot]), start, end)
-            except Exception as ex:
-                self.showMessage(msg=str(ex), icon=QMessageBox.Critical)
+            if shots:
+                seq = self.getSequence()
+                try:
+                    for cam in utils.getExistingCameraNames():
+                        try:
+                            shots.remove(cam)
+                        except ValueError:
+                            pass
+                    for shot in shots:
+                        start, end = self.shots['_'.join([seq, shot])]
+                        utils.addCamera('_'.join([seq.split('_')[-1], shot]), start, end)
+                except Exception as ex:
+                    self.showMessage(msg=str(ex), icon=QMessageBox.Critical)
             if extraRefs:
                 details = ''
                 for key, val in extraRefs.items():
                     details += ': '.join([key, str(val)]) + '\n\n'
-                self.showMessage(msg='There are some extra References in this scene, please remove them before proceeding',
+                self.showMessage(msg='There are some extra References in this scene',
                                  details=details, icon=QMessageBox.Information)
         except Exception as ex:
             self.showMessage(msg=str(ex), icon=QMessageBox.Critical)
@@ -318,7 +327,7 @@ class Item(Form2, Base2):
                       'background-repeat: no-repeat;\n'+
                       'background-position: center right')
 
-        if self.userAllowed():
+        if not self.userAllowed():
             self.removeButton.setEnabled(False);
             self.addButton.setEnabled(False)
             self.emptyButton.setEnabled(False)
