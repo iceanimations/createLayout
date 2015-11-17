@@ -161,6 +161,7 @@ class LayoutCreator(Form, Base):
             self.shotBox.clearItems()
             self.assetPaths.clear()
             self.rigBox.clear()
+            self.modelBox.clear()
             if seq == '--Select Sequence--' or not seq: return
             shots, err = utils.getShots(seq)
             errors.update(self.populateSequenceAssets(seq))

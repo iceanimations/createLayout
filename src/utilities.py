@@ -16,6 +16,7 @@ import re
 import iutil.symlinks as symlinks
 import os
 from collections import Counter
+from auth import user
 
 pc.mel.eval("source \"R:/Pipe_Repo/Users/Hussain/utilities/loader/command/mel/addInOutAttr.mel\";")
 
@@ -26,13 +27,16 @@ class CCounter(Counter):
 
 server = None
 
-def setServer():
+def setServer(serv=None):
     errors = {}
     global server
+    if serv: server = serv; return
     try:
-        server = tcl.TacticServerStub(server='dbserver', login='tactic',
-                                      password='tactic123',
-                                      project='test_mansour_ep')
+        if user.user_registered():
+            server = user.get_server()
+        else:
+            user.login('tactic', 'tactic123')
+            server = user.get_server()
     except Exception as ex:
         errors['Could not connect to TACTIC'] = str(ex)
     return server, errors
