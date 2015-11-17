@@ -22,6 +22,8 @@ root_path = osp.dirname(osp.dirname(__file__))
 ui_path = osp.join(root_path, 'ui')
 icon_path = osp.join(root_path, 'icon')
 __title__ = 'Create Layout Scene'
+projectKey = 'createlayoutProjectKey'
+epKey = 'createLayoutEpKey'
 
 Form, Base = uic.loadUiType(osp.join(ui_path, 'main_dockable.ui'))
 class LayoutCreator(Form, Base):
@@ -29,12 +31,7 @@ class LayoutCreator(Form, Base):
         super(LayoutCreator, self).__init__(parent)
         self.setupUi(self)
         self.setWindowTitle(__title__)
-        borderColor = '#252525'
-        self.setStyleSheet('QComboBox {\nborder-style: solid;\nborder-color: '+borderColor+';\nborder-width: 1px;\nborder-radius: 0px;\n}'+
-                           'QPushButton {\nborder-style: solid;\nborder-color: '+borderColor+';\nborder-width: 1px;\nborder-radius: 0px;'+
-                           '\nheight: 23;\nwidth: 75;\n}\nQPushButton:hover, QToolButton:hover {\nbackground-color: #303030;\n}'+
-                           'QLineEdit {height: 23;\nborder-style: solid;\nborder-width: 1px;\nborder-color: '+borderColor+';\nborder-radius: 0px;\npadding-left: 15px;\npadding-bottom: 1px;}'+
-                           'QToolButton {\nborder-style: solid;\nborder-color: '+borderColor+';\nborder-width: 1px;\nborder-radius: 0px;\n}')
+        self.setStyleSheet(cui.styleSheet)
         
         self.flowLayout = cui.FlowLayout()
         self.flowLayout.setSpacing(2)
@@ -43,9 +40,6 @@ class LayoutCreator(Form, Base):
         self.projectBox = QComboBox(); self.projectBox.addItem('--Select Project--')
         self.epBox = QComboBox(); self.epBox.addItem('--Select Episode--')
         self.seqBox = QComboBox(); self.seqBox.addItem('--Select Sequence--')
-        self.projectBox.setMinimumSize(125, 25)
-        self.epBox.setMinimumSize(125, 25)
-        self.seqBox.setMinimumSize(125, 25)
         
         self.setServer()
         self.populateProjects()
@@ -79,7 +73,29 @@ class LayoutCreator(Form, Base):
         style_sheet = self.searchBox.styleSheet() + style_sheet
         self.searchBox.setStyleSheet(style_sheet)
         self.splitter_2.setSizes([(self.height() * 30) / 100, (self.height() * 50) / 100])
+        
+        pro = qutil.getOptionVar(projectKey)
+        ep = qutil.getOptionVar(epKey)
+        self.setContext(pro, ep, None)
+        
         appUsageApp.updateDatabase('createLayout')
+        
+    def setContext(self, pro, ep, seq):
+        if pro:
+            for i in range(self.projectBox.count()):
+                if self.projectBox.itemText(i) == pro:
+                    self.projectBox.setCurrentIndex(i)
+                    break
+        if ep:
+            for i in range(self.epBox.count()):
+                if self.epBox.itemText(i) == ep:
+                    self.epBox.setCurrentIndex(i)
+                    break
+        if seq:
+            for i in range(self.seqBox.count()):
+                if self.seqBox.itemText(i) == seq:
+                    self.seqBox.setCurrentIndex(i)
+                    break
         
     def toggleItems(self):
         self.collapsed = not self.collapsed
@@ -107,6 +123,7 @@ class LayoutCreator(Form, Base):
             self.projectBox.addItems(projects)
             
     def setProject(self, project):
+        qutil.addOptionVar(projectKey, project)
         self.epBox.clear()
         self.epBox.addItem('--Select Episode--')
         if project != '--Select Project--':
@@ -133,6 +150,7 @@ class LayoutCreator(Form, Base):
             qApp.restoreOverrideCursor()
     
     def populateSequences(self, ep):
+        qutil.addOptionVar(epKey, ep)
         qApp.setOverrideCursor(Qt.WaitCursor)
         try:
             self.seqBox.clear()
