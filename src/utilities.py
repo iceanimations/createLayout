@@ -17,6 +17,7 @@ import iutil.symlinks as symlinks
 import os
 from collections import Counter
 from auth import user
+import maya.cmds as cmds
 
 pc.mel.eval("source \"R:/Pipe_Repo/Users/Hussain/utilities/loader/command/mel/addInOutAttr.mel\";")
 
@@ -244,3 +245,14 @@ def addCamera(name, start, end):
     pc.mel.eval('addInOutAttr;')
     cam.attr('in').set(start); cam.out.set(end)
     addKeys.add([cam], start, end)
+    
+def isModified():
+    return cmds.file(modified=True, q=True)
+
+def getExt():
+    return cmds.file(q=True, type=True)[0]
+
+def checkin(seq, context, desc):
+    path = cmds.file(location=True, q=True)
+    sk = server.query('vfx/sequence', filters=[('code', seq)])[0]['__search_key__']
+    server.simple_checkin(sk, context=context, file_path=path, mode='copy', description=desc)

@@ -31,11 +31,21 @@
        </spacer>
       </item>
       <item>
+       <widget class="QPushButton" name="saveButton">
+        <property name="toolTip">
+         <string>Save current scene to selected Sequence</string>
+        </property>
+        <property name="text">
+         <string>Save</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="createButton">
         <property name="minimumSize">
          <size>
           <width>75</width>
-          <height>23</height>
+          <height>0</height>
          </size>
         </property>
         <property name="toolTip">
@@ -66,7 +76,7 @@
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
-       <widget class="QWidget" name="">
+       <widget class="QWidget" name="layoutWidget">
         <layout class="QVBoxLayout" name="verticalLayout_5">
          <item>
           <widget class="QLabel" name="label">
@@ -133,7 +143,7 @@
         </layout>
        </widget>
       </widget>
-      <widget class="QWidget" name="">
+      <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
          <layout class="QHBoxLayout" name="searchLayout">
@@ -199,7 +209,7 @@
              <x>0</x>
              <y>0</y>
              <width>315</width>
-             <height>238</height>
+             <height>155</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_2">

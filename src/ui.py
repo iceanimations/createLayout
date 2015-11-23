@@ -59,6 +59,7 @@ class LayoutCreator(Form, Base):
         self.createButton.clicked.connect(self.create)
         self.toggleCollapseButton.clicked.connect(self.toggleItems)
         self.searchBox.textChanged.connect(self.searchItems)
+        self.saveButton.clicked.connect(self.showSaveDialog)
         
         self.shotBox = cui.MultiSelectComboBox(self, '--Shots--')
         self.shotBox.setStyleSheet('QPushButton{min-width: 100px;}')
@@ -69,7 +70,8 @@ class LayoutCreator(Form, Base):
         search_ic_path = osp.join(icon_path, 'ic_search.png').replace('\\','/')
         style_sheet = ('\nbackground-image: url(%s);'+
                        '\nbackground-repeat: no-repeat;'+
-                       '\nbackground-position: center left;')%search_ic_path
+                       '\nbackground-position: center left;'+
+                       '\npadding-left: 15px;\npadding-bottom: 1px;\n')%search_ic_path
         style_sheet = self.searchBox.styleSheet() + style_sheet
         self.searchBox.setStyleSheet(style_sheet)
         self.splitter_2.setSizes([(self.height() * 30) / 100, (self.height() * 50) / 100])
@@ -79,6 +81,9 @@ class LayoutCreator(Form, Base):
         self.setContext(pro, ep, None)
         
         appUsageApp.updateDatabase('createLayout')
+        
+    def showSaveDialog(self):
+        Checkin(self).show()
         
     def setContext(self, pro, ep, seq):
         if pro:
@@ -454,3 +459,47 @@ class Item(Form2, Base2):
         for i in range(self.listBox.count()):
             items.append(self.listBox.item(i).text())
         return items
+    
+Form3, Base3 = uic.loadUiType(osp.join(ui_path, 'checkin.ui'))
+class Checkin(Form3, Base3):
+    def __init__(self, parent=None):
+        super(Checkin, self).__init__(parent)
+        self.setupUi(self)
+        self.parentWin = parent
+        self.contextBox.setValidator(QRegExpValidator(QRegExp('[A-Za-z0-9_]+')))
+        
+        self.okButton.clicked.connect(self.checkin)
+        
+    def getContext(self):
+        return self.contextBox.text()
+        
+    def checkin(self):
+        if utils.isModified():
+            self.parentWin.showMessage(msg='Unsaved changed found in the current scene, Save them bofore proceeding',
+                                       icon=MessageBox.Warning)
+            return
+        if utils.getExt() == 'mayaAscii':
+            self.parentWin.showMessage(msg='mayaAscii files are not allowed, save as mayaBinary and then try again',
+                                       icon=QMessageBox.Warning)
+            return
+        seq = self.parentWin.getSequence()
+        if not seq:
+            self.parentWin.showMessage(msg='Sequence not selected for the layout file',
+                                       icon=QMessageBox.Warning)
+            return
+        context = self.getContext()
+        if not seq:
+            self.parentWin.showMessage(msg='No Context specified for the file',
+                                       icon=QMessageBox.Warning)
+            return
+        if 'layout' in context.lower():
+            self.parentWin.showMessage(msg='The context can not contain \"Layout\" word',
+                                       icon=QMessageBox.Warning)
+            return
+        context = 'LAYOUT/'+ context
+        desc = self.descBox.toPlainText()
+        try:
+            utils.checkin(seq, context, desc)
+        except Exception as ex:
+            self.parentWin.showMessage(msg=str(ex), icon=QMessageBox.Critical)
+        self.accept()
