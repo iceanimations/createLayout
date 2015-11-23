@@ -82,6 +82,14 @@ class LayoutCreator(Form, Base):
         
         appUsageApp.updateDatabase('createLayout')
         
+    def setBusy(self):
+        qApp.setOverrideCursor(Qt.WaitCursor)
+        qApp.processEvents()
+        
+    def releaseBusy(self):
+        qApp.restoreOverrideCursor()
+        qApp.processEvents()
+        
     def showSaveDialog(self):
         Checkin(self).show()
         
@@ -140,7 +148,7 @@ class LayoutCreator(Form, Base):
             self.populateEpisodes()
     
     def populateEpisodes(self):
-        qApp.setOverrideCursor(Qt.WaitCursor)
+        self.setBusy()
         try:
             episodes, errors = utils.getEpisodes()
             if errors:
@@ -149,14 +157,14 @@ class LayoutCreator(Form, Base):
                                  details=qutil.dictionaryToDetails(errors))
             self.epBox.addItems(episodes)
         except Exception as ex:
-            qApp.restoreOverrideCursor()
+            self.releaseBusy()
             self.showMessage(msg=str(ex), icon=QMessageBox.Critical)
         finally:
-            qApp.restoreOverrideCursor()
+            self.releaseBusy()
     
     def populateSequences(self, ep):
         qutil.addOptionVar(epKey, ep)
-        qApp.setOverrideCursor(Qt.WaitCursor)
+        self.setBusy()
         try:
             self.seqBox.clear()
             self.seqBox.addItem('--Select Sequence--')
@@ -168,14 +176,14 @@ class LayoutCreator(Form, Base):
                                      details=qutil.dictionaryToDetails(errors))
                 self.seqBox.addItems(seqs)
         except Exception as ex:
-            qApp.restoreOverrideCursor()
+            self.releaseBusy()
             self.showMessage(msg=str(ex), icon=QMessageBox.Critical)
         finally:
-            qApp.restoreOverrideCursor()
+            self.releaseBusy()
 
     def populateShots(self, seq):
         errors = {}
-        qApp.setOverrideCursor(Qt.WaitCursor)
+        self.setBusy()
         try:
             self.shots.clear()
             for item in self.shotItems:
@@ -196,10 +204,10 @@ class LayoutCreator(Form, Base):
             self.shotBox.addItems(shots)
         except Exception as ex:
             traceback.print_exc()
-            qApp.restoreOverrideCursor()
+            self.releaseBusy()
             self.showMessage(msg=str(ex), icon=QMessageBox.Critical)
         finally:
-            qApp.restoreOverrideCursor()
+            self.releaseBusy()
         if errors:
             self.showMessage(msg='Error occurred while retrieving Assets for selected Sequence',
                              icon=QMessageBox.Critical,
@@ -407,7 +415,7 @@ class Item(Form2, Base2):
         
     def addAssetsToTactic(self, assets):
         flag = False
-        qApp.setOverrideCursor(Qt.WaitCursor)
+        self.setBusy()
         try:
             errors = utils.addAssetsToShot(assets, self.name)
             if errors:
@@ -417,10 +425,10 @@ class Item(Form2, Base2):
             else:
                 flag = True
         except Exception as ex:
-            qApp.restoreOverrideCursor()
+            self.releaseBusy()
             self.parentWin.showMessage(msg=str(ex), icon=QMessageBox.Critical)
         finally:
-            qApp.restoreOverrideCursor()
+            self.releaseBusy()
         return flag
         
     def addItems(self, items):
@@ -435,7 +443,7 @@ class Item(Form2, Base2):
         self.updateNum()
     
     def removeItems(self):
-        qApp.setOverrideCursor(Qt.WaitCursor)
+        self.setBusy()
         try:
             assets = self.listBox.selectedItems()
             if assets:
@@ -448,10 +456,10 @@ class Item(Form2, Base2):
                 for item in assets:
                     self.listBox.takeItem(self.listBox.row(item))
         except Exception as ex:
-            qApp.restoreOverrideCursor()
+            self.releaseBusy()
             self.parentWin.showMessage(msg=str(ex), icon=QMessageBox.Critical)
         finally:
-            qApp.restoreOverrideCursor()
+            self.releaseBusy()
         self.updateNum()
             
     def getItems(self):
@@ -499,7 +507,11 @@ class Checkin(Form3, Base3):
         context = 'LAYOUT/'+ context
         desc = self.descBox.toPlainText()
         try:
+            self.parentWin.setBusy()
             utils.checkin(seq, context, desc)
         except Exception as ex:
+            self.parentWin.releaseBusy()
             self.parentWin.showMessage(msg=str(ex), icon=QMessageBox.Critical)
+        finally:
+            self.parentWin.releaseBusy()
         self.accept()
