@@ -11,27 +11,31 @@ import os.path as osp
 import qtify_maya_window as qtfy
 import appUsageApp
 import qutil
-import utilities as utils
+import tacticCalls as tc
 import traceback
+from . import utilities as utils
 
-reload(utils)
+from pprint import pprint
+
+
+reload(tc)
 reload(qutil)
 reload(cui)
+reload(utils)
 
 root_path = osp.dirname(osp.dirname(__file__))
 ui_path = osp.join(root_path, 'ui')
 icon_path = osp.join(root_path, 'icon')
 __title__ = 'Create Layout Scene'
-projectKey = 'createlayoutProjectKey'
-epKey = 'createLayoutEpKey'
 
 Form, Base = uic.loadUiType(osp.join(ui_path, 'main_dockable.ui'))
-class LayoutCreator(Form, Base):
+class LayoutCreator(Form, Base, cui.TacticUiBase):
     def __init__(self, parent=qtfy.getMayaWindow()):
         super(LayoutCreator, self).__init__(parent)
         self.setupUi(self)
         self.setWindowTitle(__title__)
         self.setStyleSheet(cui.styleSheet)
+        self.setServer()
         
         self.flowLayout = cui.FlowLayout()
         self.flowLayout.setSpacing(2)
@@ -41,13 +45,14 @@ class LayoutCreator(Form, Base):
         self.epBox = QComboBox(); self.epBox.addItem('--Select Episode--')
         self.seqBox = QComboBox(); self.seqBox.addItem('--Select Sequence--')
         
-        self.setServer()
-        self.populateProjects()
-        
+        self.projectKey = 'createlayoutProjectKey'
+        self.epKey = 'createLayoutEpKey'
         self.shots = {}
         self.shotItems = []
         self.assetPaths = {}
         self.collapsed = True
+
+        self.populateProjects()
         
         self.flowLayout.addWidget(self.projectBox)
         self.flowLayout.addWidget(self.epBox)
@@ -75,9 +80,9 @@ class LayoutCreator(Form, Base):
         style_sheet = self.searchBox.styleSheet() + style_sheet
         self.searchBox.setStyleSheet(style_sheet)
         self.splitter_2.setSizes([(self.height() * 30) / 100, (self.height() * 50) / 100])
-        
-        pro = qutil.getOptionVar(projectKey)
-        ep = qutil.getOptionVar(epKey)
+
+        pro = qutil.getOptionVar(tc.projectKey)
+        ep = qutil.getOptionVar(tc.episodeKey)
         self.setContext(pro, ep, None)
         
         appUsageApp.updateDatabase('createLayout')
@@ -93,23 +98,6 @@ class LayoutCreator(Form, Base):
     def showSaveDialog(self):
         Checkin(self).show()
         
-    def setContext(self, pro, ep, seq):
-        if pro:
-            for i in range(self.projectBox.count()):
-                if self.projectBox.itemText(i) == pro:
-                    self.projectBox.setCurrentIndex(i)
-                    break
-        if ep:
-            for i in range(self.epBox.count()):
-                if self.epBox.itemText(i) == ep:
-                    self.epBox.setCurrentIndex(i)
-                    break
-        if seq:
-            for i in range(self.seqBox.count()):
-                if self.seqBox.itemText(i) == seq:
-                    self.seqBox.setCurrentIndex(i)
-                    break
-        
     def toggleItems(self):
         self.collapsed = not self.collapsed
         for item in self.shotItems:
@@ -117,69 +105,6 @@ class LayoutCreator(Form, Base):
     
     def getSelectedAssets(self):
         return [item.text() for item in self.rigBox.selectedItems()]
-        
-    def setServer(self):
-        self.server, errors = utils.setServer()
-        if errors:
-            self.showMessage(msg=errors.keys()[0], icon=QMessageBox.Critical,
-                             details=errors.values()[0])
-        
-    def populateProjects(self):
-        self.projectBox.clear()
-        self.projectBox.addItem('--Select Project--')
-        projects, errors = utils.getProjects()
-        if errors:
-            self.showMessage(msg='Error occurred while retrieving the list of projects from TACTIC',
-                             icon=QMessageBox.Critical,
-                             details=qutil.dictionaryToDetails(errors))
-        if projects:
-            self.projectBox.addItems(projects)
-            
-    def setProject(self, project):
-        qutil.addOptionVar(projectKey, project)
-        self.epBox.clear()
-        self.epBox.addItem('--Select Episode--')
-        if project != '--Select Project--':
-            errors = utils.setProject(project)
-            if errors:
-                self.showMessage(msg='Error occurred while setting the project on TACTIC',
-                                 icon=QMessageBox.Critical,
-                                 details=qutil.dictionaryToDetails(errors))
-            self.populateEpisodes()
-    
-    def populateEpisodes(self):
-        self.setBusy()
-        try:
-            episodes, errors = utils.getEpisodes()
-            if errors:
-                self.showMessage(msg='Error occurred while retrieving the Episodes',
-                                 icon=QMessageBox.Critical,
-                                 details=qutil.dictionaryToDetails(errors))
-            self.epBox.addItems(episodes)
-        except Exception as ex:
-            self.releaseBusy()
-            self.showMessage(msg=str(ex), icon=QMessageBox.Critical)
-        finally:
-            self.releaseBusy()
-    
-    def populateSequences(self, ep):
-        qutil.addOptionVar(epKey, ep)
-        self.setBusy()
-        try:
-            self.seqBox.clear()
-            self.seqBox.addItem('--Select Sequence--')
-            if ep != '--Select Episode--':
-                seqs, errors = utils.getSequences(ep)
-                if errors:
-                    self.showMessage(msg='Error occurred while retrieving the Sequences',
-                                     icon=QMessageBox.Critical,
-                                     details=qutil.dictionaryToDetails(errors))
-                self.seqBox.addItems(seqs)
-        except Exception as ex:
-            self.releaseBusy()
-            self.showMessage(msg=str(ex), icon=QMessageBox.Critical)
-        finally:
-            self.releaseBusy()
 
     def populateShots(self, seq):
         errors = {}
@@ -194,14 +119,13 @@ class LayoutCreator(Form, Base):
             self.rigBox.clear()
             self.modelBox.clear()
             if seq == '--Select Sequence--' or not seq: return
-            shots, err = utils.getShots(seq)
+            shots, err = tc.getShots(seq)
             errors.update(self.populateSequenceAssets(seq))
             self.shots.update(shots)
             errors.update(self.populateShotPlanner())
             errors.update(err)
-            if not shots: return
-            shots = [shot.split('_')[-1] for shot in shots.keys()]
-            self.shotBox.addItems(shots)
+            if shots:
+                self.shotBox.addItems(shots)
         except Exception as ex:
             traceback.print_exc()
             self.releaseBusy()
@@ -214,7 +138,7 @@ class LayoutCreator(Form, Base):
                              details=qutil.dictionaryToDetails(errors))
         
     def populateSequenceAssets(self, seq):
-        assets, errors = utils.getAssetsInSeq(self.getEpisode(), seq)
+        assets, errors = tc.getAssetsInSeq(self.getEpisode(), seq)
         if assets:
             for asset, values in assets.items():
                 context, path = values
@@ -227,9 +151,9 @@ class LayoutCreator(Form, Base):
         
     def populateShotPlanner(self):
         shots = sorted(self.shots.keys())
-        assets, errors = utils.getAssetsInShot(shots)
+        assets, errors = tc.getAssetsInShot(shots)
         for shot in shots:
-            item = Item(self, title=shot.split('_')[-1], name=shot)
+            item = Item(self, title=shot, name=shot)
             if assets:
                 item.addItems([asset['asset_code'] for asset in assets if asset['shot_code'] == shot])
             self.shotItems.append(item)
@@ -294,12 +218,12 @@ class LayoutCreator(Form, Base):
                 self.showMessage(msg='No Shot selected to create camera for',
                                  icon=QMessageBox.Warning)
                 return
-            goodAssets = utils.CCounter()
+            goodAssets = tc.CCounter()
             for item in [x for x in self.shotItems if x.getTitle() in shots]:
                 assets = item.getItems()
                 assets = [osp.normpath(self.assetPaths[asset]) for asset in assets] 
                 if assets:
-                    goodAssets.update_count(utils.CCounter(assets))
+                    goodAssets.update_count(tc.CCounter(assets))
                 else:
                     if not item.isEmpty():
                         self.showMessage(msg='%s selected but not Asset added'%item.getTitle(),
@@ -308,7 +232,7 @@ class LayoutCreator(Form, Base):
             goodAssets.update([osp.normpath(self.assetPaths[asset]) for asset in self.getModels()])
             extraRefs = {}
             if goodAssets:
-                goodAssets.subtract(utils.getRefsCount())
+                goodAssets.subtract(tc.getRefsCount())
                 flag = True
                 for asset, num in goodAssets.items():
                     if num > 0:
@@ -324,26 +248,24 @@ class LayoutCreator(Form, Base):
                     self.showMessage(msg='No new updates found for the Assets',
                                      icon=QMessageBox.Information)
             if shots:
-                seq = self.getSequence()
-                try:
-                    for cam in utils.getExistingCameraNames():
-                        try:
-                            shots.remove(cam)
-                        except ValueError:
-                            pass
-                    for shot in shots:
-                        start, end = self.shots['_'.join([seq, shot])]
-                        utils.addCamera('_'.join([seq.split('_')[-1], shot]), start, end)
-                except Exception as ex:
-                    self.showMessage(msg=str(ex), icon=QMessageBox.Critical)
+                for cam in tc.getExistingCameraNames():
+                    try:
+                        shots.remove(cam)
+                    except ValueError:
+                        pass
+                for shot in shots:
+                    start, end = self.shots[shot]
+                    tc.addCamera(shot, start, end)
             if extraRefs:
                 details = ''
                 for key, val in extraRefs.items():
                     details += ': '.join([key, str(val)]) + '\n\n'
                 self.showMessage(msg='There are some extra References in this scene',
                                  details=details, icon=QMessageBox.Information)
+            utils.createCacheNamesOnGeoSets()
         except Exception as ex:
             self.showMessage(msg=str(ex), icon=QMessageBox.Critical)
+        utils.createProjectContext(self.getProject(), self.getEpisode(), self.getSequence())
             
             
 Form2, Base2 = uic.loadUiType(osp.join(ui_path, 'shot_item.ui'))
@@ -415,9 +337,9 @@ class Item(Form2, Base2):
         
     def addAssetsToTactic(self, assets):
         flag = False
-        self.setBusy()
+        self.parentWin.setBusy()
         try:
-            errors = utils.addAssetsToShot(assets, self.name)
+            errors = tc.addAssetsToShot(assets, self.name)
             if errors:
                 self.parentWin.showMessage(msg='Error occurred while adding Assets to %s'%self.name,
                                            icon=QMessageBox.Critical,
@@ -425,10 +347,10 @@ class Item(Form2, Base2):
             else:
                 flag = True
         except Exception as ex:
-            self.releaseBusy()
+            self.parentWin.releaseBusy()
             self.parentWin.showMessage(msg=str(ex), icon=QMessageBox.Critical)
         finally:
-            self.releaseBusy()
+            self.parentWin.releaseBusy()
         return flag
         
     def addItems(self, items):
@@ -443,11 +365,11 @@ class Item(Form2, Base2):
         self.updateNum()
     
     def removeItems(self):
-        self.setBusy()
+        self.parentWin.setBusy()
         try:
             assets = self.listBox.selectedItems()
             if assets:
-                errors = utils.removeAssetFromShot([item.text() for item in assets], self.name)
+                errors = tc.removeAssetFromShot([item.text() for item in assets], self.name)
                 if errors:
                     self.parentWin.showMessage(msg='Error occurred while Removing Assets from %s'%self.name,
                                                icon=QMessageBox.Critical,
@@ -457,9 +379,9 @@ class Item(Form2, Base2):
                     self.listBox.takeItem(self.listBox.row(item))
         except Exception as ex:
             self.releaseBusy()
-            self.parentWin.showMessage(msg=str(ex), icon=QMessageBox.Critical)
+            self.parentWin.parentWin.showMessage(msg=str(ex), icon=QMessageBox.Critical)
         finally:
-            self.releaseBusy()
+            self.parentWin.releaseBusy()
         self.updateNum()
             
     def getItems(self):
@@ -482,11 +404,11 @@ class Checkin(Form3, Base3):
         return self.contextBox.text()
         
     def checkin(self):
-        if utils.isModified():
+        if tc.isModified():
             self.parentWin.showMessage(msg='Unsaved changed found in the current scene, Save them bofore proceeding',
-                                       icon=MessageBox.Warning)
+                                       icon=QMessageBox.Warning)
             return
-        if utils.getExt() == 'mayaAscii':
+        if tc.getExt() == 'mayaAscii':
             self.parentWin.showMessage(msg='mayaAscii files are not allowed, save as mayaBinary and then try again',
                                        icon=QMessageBox.Warning)
             return
@@ -496,7 +418,7 @@ class Checkin(Form3, Base3):
                                        icon=QMessageBox.Warning)
             return
         context = self.getContext()
-        if not seq:
+        if not context:
             self.parentWin.showMessage(msg='No Context specified for the file',
                                        icon=QMessageBox.Warning)
             return
@@ -508,7 +430,7 @@ class Checkin(Form3, Base3):
         desc = self.descBox.toPlainText()
         try:
             self.parentWin.setBusy()
-            utils.checkin(seq, context, desc)
+            tc.checkin(seq, context, desc)
         except Exception as ex:
             self.parentWin.releaseBusy()
             self.parentWin.showMessage(msg=str(ex), icon=QMessageBox.Critical)
