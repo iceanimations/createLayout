@@ -300,7 +300,7 @@ class Item(Form2, Base2):
     def userAllowed(self):
         if qutil.getUsername() in ['qurban.ali', 'talha.ahmed',
                 'mohammad.bilal', 'umair.shahid', 'sarmad.mushtaq',
-                'fayyaz.ahmed', 'omer.siddiqui', 'mohammed.farooq',
+                'fayyaz.ahmed', 'omer.siddiqui', 'muhammad.farooq',
                 'muhammad.shareef', 'rafaiz.jilani', 'shahzaib.khan' ]:
             return True
         
