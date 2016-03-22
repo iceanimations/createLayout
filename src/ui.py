@@ -14,6 +14,9 @@ import qutil
 import tacticCalls as tc
 import traceback
 from . import utilities as utils
+import imaya
+import addKeys
+import iutil
 
 from pprint import pprint
 
@@ -22,6 +25,9 @@ reload(tc)
 reload(qutil)
 reload(cui)
 reload(utils)
+reload(imaya)
+reload(addKeys)
+reload(iutil)
 
 root_path = osp.dirname(osp.dirname(__file__))
 ui_path = osp.join(root_path, 'ui')
@@ -65,6 +71,7 @@ class LayoutCreator(Form, Base, cui.TacticUiBase):
         self.toggleCollapseButton.clicked.connect(self.toggleItems)
         self.searchBox.textChanged.connect(self.searchItems)
         self.saveButton.clicked.connect(self.showSaveDialog)
+        self.syncRangeButton.clicked.connect(self.syncFrameRange)
         
         self.shotBox = cui.MultiSelectComboBox(self, '--Shots--')
         self.shotBox.setStyleSheet('QPushButton{min-width: 100px;}')
@@ -105,6 +112,29 @@ class LayoutCreator(Form, Base, cui.TacticUiBase):
     
     def getSelectedAssets(self):
         return [item.text() for item in self.rigBox.selectedItems()]
+    
+    def syncFrameRange(self):
+        try:
+            self.setBusy()
+            seq = self.getSequence()
+            if seq:
+                fRanges, errors = tc.getShots(seq)
+                if errors:
+                    self.showMessage(msg='Errors occurred while finding Frrame Ranges from TACTIC',
+                                     icon=QMessageBox.Critical,
+                                     details=iutil.dictionaryToDetails(errors))
+                if fRanges:
+                    cameras = [cam.firstParent() for cam in imaya.getCameras(renderableOnly=False)]
+                    if cameras:
+                        for camera in cameras:
+                            name = imaya.getNiceName(camera.name())
+                            if fRanges.has_key(name):
+                                addKeys.add([camera], *fRanges.get(name))
+        except Exception as ex:
+            self.showMessage(msg=str(ex), icon=QMessageBox.Critical)
+            self.releaseBusy()
+        finally:
+            self.releaseBusy()
 
     def populateShots(self, seq):
         errors = {}

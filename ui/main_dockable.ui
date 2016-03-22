@@ -31,6 +31,16 @@
        </spacer>
       </item>
       <item>
+       <widget class="QPushButton" name="syncRangeButton">
+        <property name="toolTip">
+         <string>Sync the Frame Range with TACTIC</string>
+        </property>
+        <property name="text">
+         <string>Sync Range</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="saveButton">
         <property name="toolTip">
          <string>Save current scene to selected Sequence</string>
