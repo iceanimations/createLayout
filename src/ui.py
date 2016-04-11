@@ -441,8 +441,8 @@ class Checkin(Form3, Base3):
             self.parentWin.showMessage(msg='Unsaved changed found in the current scene, Save them bofore proceeding',
                                        icon=QMessageBox.Warning)
             return
-        if tc.getExt() == 'mayaAscii':
-            self.parentWin.showMessage(msg='mayaAscii files are not allowed, save as mayaBinary and then try again',
+        if tc.getExt() == 'mayaBinary':
+            self.parentWin.showMessage(msg='mayaBinary files are not allowed, save as mayaAscii and then try again',
                                        icon=QMessageBox.Warning)
             return
         seq = self.parentWin.getSequence()
