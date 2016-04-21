@@ -251,15 +251,15 @@ class LayoutCreator(Form, Base, cui.TacticUiBase):
             goodAssets = tc.CCounter()
             for item in [x for x in self.shotItems if x.getTitle() in shots]:
                 assets = item.getItems()
-                assets = [osp.normpath(self.assetPaths[asset]) for asset in assets] 
+                assets = [osp.normcase(osp.normpath(self.assetPaths[asset])) for asset in assets] 
                 if assets:
                     goodAssets.update_count(tc.CCounter(assets))
                 else:
                     if not item.isEmpty():
-                        self.showMessage(msg='%s selected but not Asset added'%item.getTitle(),
+                        self.showMessage(msg='%s selected but no Asset added'%item.getTitle(),
                                          icon=QMessageBox.Information)
                         return
-            goodAssets.update([osp.normpath(self.assetPaths[asset]) for asset in self.getModels()])
+            goodAssets.update([osp.normcase(osp.normpath(self.assetPaths[asset])) for asset in self.getModels()])
             extraRefs = {}
             if goodAssets:
                 goodAssets.subtract(tc.getRefsCount())
