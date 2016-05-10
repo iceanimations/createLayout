@@ -435,21 +435,34 @@ class Checkin(Form3, Base3):
         
     def getContext(self):
         return self.contextBox.text()
+    
+    def epCheckin(self):
+        return self.epLayoutButton.isChecked()
         
     def checkin(self):
-        if tc.isModified():
-            self.parentWin.showMessage(msg='Unsaved changed found in the current scene, Save them bofore proceeding',
-                                       icon=QMessageBox.Warning)
-            return
         if tc.getExt() == 'mayaBinary':
             self.parentWin.showMessage(msg='mayaBinary files are not allowed, save as mayaAscii and then try again',
                                        icon=QMessageBox.Warning)
             return
-        seq = self.parentWin.getSequence()
-        if not seq:
-            self.parentWin.showMessage(msg='Sequence not selected for the layout file',
-                                       icon=QMessageBox.Warning)
-            return
+        if tc.isModified():
+            btn = self.parentWin.showMessage(msg='Unsaved changed found in the current scene',
+                                             ques='Do you want to save them?',
+                                             btns = QMessageBox.Yes|QMessageBox.No|QMessageBox.Cancel,
+                                             icon=QMessageBox.Warning)
+            if btn == QMessageBox.Cancel: return
+            if btn == QMessageBox.Yes: utils.saveScene()
+        if not self.epCheckin():
+            seq = self.parentWin.getSequence()
+            if not seq:
+                self.parentWin.showMessage(msg='Sequence not selected for the layout file',
+                                           icon=QMessageBox.Warning)
+                return
+        else:
+            ep = self.parentWin.getEpisode()
+            if not ep:
+                self.parentWin.showMessage(msg='Episode not selected for the layout file',
+                                           icon=QMessageBox.Warning)
+                return
         context = self.getContext()
         if not context:
             self.parentWin.showMessage(msg='No Context specified for the file',
@@ -463,7 +476,10 @@ class Checkin(Form3, Base3):
         desc = self.descBox.toPlainText()
         try:
             self.parentWin.setBusy()
-            tc.checkin(seq, context, desc)
+            if self.epCheckin():
+                tc.epCheckin(ep, context, desc)
+            else:
+                tc.checkin(seq, context, desc)
         except Exception as ex:
             self.parentWin.releaseBusy()
             self.parentWin.showMessage(msg=str(ex), icon=QMessageBox.Critical)

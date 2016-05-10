@@ -6,6 +6,7 @@ Created on Oct 30, 2015
 import pymel.core as pc
 import imaya
 from collections import Counter
+import maya.cmds as cmds
 
 projectKey = 'createLayoutProjectKey'
 episodeKey = 'createLayoutEpisodeKey'
@@ -27,3 +28,6 @@ def createProjectContext(project, episode, sequence):
     imaya.addFileInfo(projectKey, project)
     imaya.addFileInfo(episodeKey, episode)
     imaya.addFileInfo(sequenceKey, sequence)
+    
+def saveScene():
+    cmds.file(save=True, f=True)
