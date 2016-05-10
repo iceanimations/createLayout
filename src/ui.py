@@ -17,6 +17,7 @@ from . import utilities as utils
 import imaya
 import addKeys
 import iutil
+import os
 
 from pprint import pprint
 
@@ -432,6 +433,14 @@ class Checkin(Form3, Base3):
         self.contextBox.setValidator(QRegExpValidator(QRegExp('[A-Za-z0-9_]+')))
         
         self.okButton.clicked.connect(self.checkin)
+        self.epLayoutButton.clicked.connect(self.handleEpClick)
+        
+    def handleEpClick(self):
+        if os.environ['USERNAME'] not in ['umair.shahid', 'qurban.ali', 'talha.ahmed']:
+            self.parentWin.showMessage(msg='You don\'t have permissions to make changes to Episode Layout',
+                                       icon=QMessageBox.Warning)
+            self.epLayoutButton.setChecked(False)
+            return
         
     def getContext(self):
         return self.contextBox.text()
