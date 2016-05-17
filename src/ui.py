@@ -93,6 +93,10 @@ class LayoutCreator(Form, Base, cui.TacticUiBase):
         ep = qutil.getOptionVar(tc.episodeKey)
         self.setContext(pro, ep, None)
         
+        if os.environ['USERNAME'] not in ['umair.shahid', 'qurban.ali', 'talha.ahmed']:
+            self.syncRangeButton.hide()
+            self.saveButton.hide()
+        
         appUsageApp.updateDatabase('createLayout')
         
     def setBusy(self):
