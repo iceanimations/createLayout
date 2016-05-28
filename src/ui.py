@@ -93,7 +93,10 @@ class LayoutCreator(Form, Base, cui.TacticUiBase):
         ep = qutil.getOptionVar(tc.episodeKey)
         self.setContext(pro, ep, None)
         
-        if os.environ['USERNAME'] not in ['umair.shahid', 'qurban.ali', 'talha.ahmed']:
+        if os.environ['USERNAME'] not in ['qurban.ali', 'talha.ahmed',
+                'mohammad.bilal', 'umair.shahid', 'sarmad.mushtaq',
+                'fayyaz.ahmed',
+                'muhammad.shareef', 'rafaiz.jilani', 'shahzaib.khan' ]:
             self.syncRangeButton.hide()
             self.saveButton.hide()
         
@@ -335,7 +338,7 @@ class Item(Form2, Base2):
     def userAllowed(self):
         if qutil.getUsername() in ['qurban.ali', 'talha.ahmed',
                 'mohammad.bilal', 'umair.shahid', 'sarmad.mushtaq',
-                'fayyaz.ahmed', 'omer.siddiqui', 'muhammad.farooq',
+                'fayyaz.ahmed',
                 'muhammad.shareef', 'rafaiz.jilani', 'shahzaib.khan' ]:
             return True
         
