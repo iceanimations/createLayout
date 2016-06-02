@@ -339,7 +339,7 @@ class Item(Form2, Base2):
         if qutil.getUsername() in ['qurban.ali', 'talha.ahmed',
                 'mohammad.bilal', 'umair.shahid', 'sarmad.mushtaq',
                 'fayyaz.ahmed',
-                'muhammad.shareef', 'rafaiz.jilani', 'shahzaib.khan' ]:
+                'muhammad.shareef', 'rafaiz.jilani', 'shahzaib.khan', 'ghulam.mustafa' ]:
             return True
         
     def checkAssets(self, val):
