@@ -156,6 +156,7 @@ class LayoutCreator(Form, Base, cui.TacticUiBase):
             self.assetPaths.clear()
             self.rigBox.clear()
             self.modelBox.clear()
+            self.shadedBox.clear()
             if seq == '--Select Sequence--' or not seq: return
             shots, err = tc.getShots(seq)
             errors.update(self.populateSequenceAssets(seq))
@@ -182,8 +183,10 @@ class LayoutCreator(Form, Base, cui.TacticUiBase):
                 context, path = values
                 if context == 'rig':
                     self.rigBox.addItem(asset)
-                else:
+                elif context == 'model':
                     self.modelBox.addItem(asset)
+                else:
+                    self.shadedBox.addItem(asset)
                 self.assetPaths[asset] = path
         return errors
         
@@ -248,11 +251,14 @@ class LayoutCreator(Form, Base, cui.TacticUiBase):
                 
     def getModels(self):
         return [item.text() for item in self.modelBox.selectedItems()]
+    
+    def getShaded(self):
+        return [item.text() for item in self.shadedBox.selectedItems()]
         
     def create(self):
         try:
             shots = self.shotBox.getSelectedItems()
-            if not (shots or self.getModels()):
+            if not (shots or self.getModels() or self.getShaded()):
                 self.showMessage(msg='No Shot selected to create camera for',
                                  icon=QMessageBox.Warning)
                 return
@@ -268,6 +274,7 @@ class LayoutCreator(Form, Base, cui.TacticUiBase):
                                          icon=QMessageBox.Information)
                         return
             goodAssets.update([osp.normcase(osp.normpath(self.assetPaths[asset])) for asset in self.getModels()])
+            goodAssets.update([osp.normcase(osp.normpath(self.assetPaths[asset])) for asset in self.getShaded()])
             extraRefs = {}
             if goodAssets:
                 goodAssets.subtract(tc.getRefsCount())

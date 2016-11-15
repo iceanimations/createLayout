@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>337</width>
+    <width>263</width>
     <height>658</height>
    </rect>
   </property>
@@ -152,6 +152,27 @@
          </item>
         </layout>
        </widget>
+       <widget class="QWidget" name="verticalLayoutWidget_2">
+        <layout class="QVBoxLayout" name="verticalLayout_6">
+         <item>
+          <widget class="QLabel" name="label_3">
+           <property name="text">
+            <string>Shaded</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QListWidget" name="shadedBox">
+           <property name="focusPolicy">
+            <enum>Qt::NoFocus</enum>
+           </property>
+           <property name="selectionMode">
+            <enum>QAbstractItemView::ExtendedSelection</enum>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
       </widget>
       <widget class="QWidget" name="layoutWidget">
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -218,7 +239,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>315</width>
+             <width>241</width>
              <height>155</height>
             </rect>
            </property>
