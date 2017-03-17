@@ -21,7 +21,6 @@ import os
 
 from pprint import pprint
 
-
 reload(tc)
 reload(qutil)
 reload(cui)
@@ -78,7 +77,7 @@ class LayoutCreator(Form, Base, cui.TacticUiBase):
         self.shotBox.setStyleSheet('QPushButton{min-width: 100px;}')
         self.shotBox.selectionDone.connect(self.toggleShotPlanner)
         self.searchLayout.insertWidget(0, self.shotBox)
-        parent.addDockWidget(0x1, self)
+        parent.addDockWidget(Qt.DockWidgetArea(0x1), self)
         self.toggleCollapseButton.setIcon(QIcon(osp.join(icon_path, 'ic_toggle_collapse')))
         search_ic_path = osp.join(icon_path, 'ic_search.png').replace('\\','/')
         style_sheet = ('\nbackground-image: url(%s);'+
@@ -95,8 +94,8 @@ class LayoutCreator(Form, Base, cui.TacticUiBase):
         
         if os.environ['USERNAME'] not in ['qurban.ali', 'talha.ahmed',
                 'mohammad.bilal', 'umair.shahid', 'sarmad.mushtaq',
-                'fayyaz.ahmed',
-                'muhammad.shareef', 'rafaiz.jilani', 'shahzaib.khan' ]:
+                'fayyaz.ahmed', 'muhammad.shareef', 'rafaiz.jilani',
+                'shahzaib.khan' ]:
             self.syncRangeButton.hide()
             self.saveButton.hide()
         
@@ -163,6 +162,7 @@ class LayoutCreator(Form, Base, cui.TacticUiBase):
             self.shots.update(shots)
             errors.update(self.populateShotPlanner())
             errors.update(err)
+            print self.shots
             if shots:
                 self.shotBox.addItems(shots)
         except Exception as ex:
@@ -309,6 +309,8 @@ class LayoutCreator(Form, Base, cui.TacticUiBase):
                                  details=details, icon=QMessageBox.Information)
             utils.createCacheNamesOnGeoSets()
         except Exception as ex:
+            import traceback
+            traceback.print_exc()
             self.showMessage(msg=str(ex), icon=QMessageBox.Critical)
         utils.createProjectContext(self.getProject(), self.getEpisode(), self.getSequence())
             
@@ -451,7 +453,7 @@ class Checkin(Form3, Base3):
         
     def handleEpClick(self):
         if os.environ['USERNAME'] not in ['umair.shahid', 'qurban.ali', 'talha.ahmed']:
-            self.parentWin.showMessage(msg='You don\'t have permissions to make changes to Episode Layout',
+            self.parentWin.showMessage(msg="You don't have permissions to make changes to Episode Layout",
                                        icon=QMessageBox.Warning)
             self.epLayoutButton.setChecked(False)
             return
