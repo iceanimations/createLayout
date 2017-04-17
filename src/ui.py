@@ -93,9 +93,9 @@ class LayoutCreator(Form, Base, cui.TacticUiBase):
         self.setContext(pro, ep, None)
         
         if os.environ['USERNAME'] not in ['qurban.ali', 'talha.ahmed',
-                'mohammad.bilal', 'umair.shahid', 'sarmad.mushtaq',
-                'fayyaz.ahmed', 'muhammad.shareef', 'rafaiz.jilani',
-                'shahzaib.khan' ]:
+                'mohammad.bilal', 'sarmad.mushtaq', 'fayyaz.ahmed',
+                'muhammad.shareef', 'rafaiz.jilani', 'shahzaib.khan',
+                'omer.siddiqui', 'irfan.nizar' ]:
             self.syncRangeButton.hide()
             self.saveButton.hide()
         
