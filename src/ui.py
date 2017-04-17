@@ -34,6 +34,11 @@ ui_path = osp.join(root_path, 'ui')
 icon_path = osp.join(root_path, 'icon')
 __title__ = 'Create Layout Scene'
 
+_allowed_users = ['qurban.ali', 'talha.ahmed',
+                'mohammad.bilal', 'umair.shahid', 'sarmad.mushtaq',
+                'fayyaz.ahmed', 'muhammad.shareef', 'rafaiz.jilani',
+                'shahzaib.khan' ]
+
 Form, Base = uic.loadUiType(osp.join(ui_path, 'main_dockable.ui'))
 class LayoutCreator(Form, Base, cui.TacticUiBase):
     def __init__(self, parent=qtfy.getMayaWindow()):
@@ -92,10 +97,7 @@ class LayoutCreator(Form, Base, cui.TacticUiBase):
         ep = qutil.getOptionVar(tc.episodeKey)
         self.setContext(pro, ep, None)
         
-        if os.environ['USERNAME'] not in ['qurban.ali', 'talha.ahmed',
-                'mohammad.bilal', 'sarmad.mushtaq', 'fayyaz.ahmed',
-                'muhammad.shareef', 'rafaiz.jilani', 'shahzaib.khan',
-                'omer.siddiqui', 'irfan.nizar' ]:
+        if os.environ['USERNAME'] not in _allowed_users:
             self.syncRangeButton.hide()
             self.saveButton.hide()
         
@@ -345,10 +347,7 @@ class Item(Form2, Base2):
         self.emptyButton.toggled.connect(self.checkAssets)
         
     def userAllowed(self):
-        if qutil.getUsername() in ['qurban.ali', 'talha.ahmed',
-                'mohammad.bilal', 'umair.shahid', 'sarmad.mushtaq',
-                'fayyaz.ahmed',
-                'muhammad.shareef', 'rafaiz.jilani', 'shahzaib.khan' ]:
+        if qutil.getUsername() in _allowed_users:
             return True
         
     def checkAssets(self, val):
