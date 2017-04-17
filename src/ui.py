@@ -34,10 +34,9 @@ ui_path = osp.join(root_path, 'ui')
 icon_path = osp.join(root_path, 'icon')
 __title__ = 'Create Layout Scene'
 
-_allowed_users = ['qurban.ali', 'talha.ahmed',
-                'mohammad.bilal', 'umair.shahid', 'sarmad.mushtaq',
-                'fayyaz.ahmed', 'muhammad.shareef', 'rafaiz.jilani',
-                'shahzaib.khan' ]
+_allowed_users = ['qurban.ali', 'talha.ahmed', 'mohammad.bilal',
+        'umair.shahid', 'sarmad.mushtaq', 'fayyaz.ahmed', 'muhammad.shareef',
+        'rafaiz.jilani', 'shahzaib.khan', 'omer.siddiqui', 'irfan.nizar' ]
 
 Form, Base = uic.loadUiType(osp.join(ui_path, 'main_dockable.ui'))
 class LayoutCreator(Form, Base, cui.TacticUiBase):
