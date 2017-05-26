@@ -97,7 +97,6 @@ class LayoutCreator(Form, Base, cui.TacticUiBase):
         self.setContext(pro, ep, None)
         
         if os.environ['USERNAME'] not in _allowed_users:
-                'fayyaz.ahmed', 'irfan.nizar',
             self.syncRangeButton.hide()
             self.saveButton.hide()
         
