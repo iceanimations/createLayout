@@ -21,7 +21,6 @@ import os
 
 from pprint import pprint
 
-
 reload(tc)
 reload(qutil)
 reload(cui)
@@ -34,6 +33,10 @@ root_path = osp.dirname(osp.dirname(__file__))
 ui_path = osp.join(root_path, 'ui')
 icon_path = osp.join(root_path, 'icon')
 __title__ = 'Create Layout Scene'
+
+_allowed_users = ['qurban.ali', 'talha.ahmed', 'mohammad.bilal',
+         'sarmad.mushtaq', 'fayyaz.ahmed', 'muhammad.shareef', 'rafaiz.jilani',
+         'shahzaib.khan', 'omer.siddiqui', 'irfan.nizar' ]
 
 Form, Base = uic.loadUiType(osp.join(ui_path, 'main_dockable.ui'))
 class LayoutCreator(Form, Base, cui.TacticUiBase):
@@ -78,7 +81,7 @@ class LayoutCreator(Form, Base, cui.TacticUiBase):
         self.shotBox.setStyleSheet('QPushButton{min-width: 100px;}')
         self.shotBox.selectionDone.connect(self.toggleShotPlanner)
         self.searchLayout.insertWidget(0, self.shotBox)
-        parent.addDockWidget(0x1, self)
+        parent.addDockWidget(Qt.DockWidgetArea(0x1), self)
         self.toggleCollapseButton.setIcon(QIcon(osp.join(icon_path, 'ic_toggle_collapse')))
         search_ic_path = osp.join(icon_path, 'ic_search.png').replace('\\','/')
         style_sheet = ('\nbackground-image: url(%s);'+
@@ -93,10 +96,8 @@ class LayoutCreator(Form, Base, cui.TacticUiBase):
         ep = qutil.getOptionVar(tc.episodeKey)
         self.setContext(pro, ep, None)
         
-        if os.environ['USERNAME'] not in ['qurban.ali', 'talha.ahmed',
-                'mohammad.bilal', 'umair.shahid', 'sarmad.mushtaq',
+        if os.environ['USERNAME'] not in _allowed_users:
                 'fayyaz.ahmed', 'irfan.nizar',
-                'muhammad.shareef', 'rafaiz.jilani', 'shahzaib.khan' ]:
             self.syncRangeButton.hide()
             self.saveButton.hide()
         
@@ -163,6 +164,7 @@ class LayoutCreator(Form, Base, cui.TacticUiBase):
             self.shots.update(shots)
             errors.update(self.populateShotPlanner())
             errors.update(err)
+            print self.shots
             if shots:
                 self.shotBox.addItems(shots)
         except Exception as ex:
@@ -309,6 +311,8 @@ class LayoutCreator(Form, Base, cui.TacticUiBase):
                                  details=details, icon=QMessageBox.Information)
             utils.createCacheNamesOnGeoSets()
         except Exception as ex:
+            import traceback
+            traceback.print_exc()
             self.showMessage(msg=str(ex), icon=QMessageBox.Critical)
         utils.createProjectContext(self.getProject(), self.getEpisode(), self.getSequence())
             
@@ -343,10 +347,7 @@ class Item(Form2, Base2):
         self.emptyButton.toggled.connect(self.checkAssets)
         
     def userAllowed(self):
-        if qutil.getUsername() in ['qurban.ali', 'talha.ahmed',
-                'mohammad.bilal', 'umair.shahid', 'sarmad.mushtaq',
-                'fayyaz.ahmed',
-                'muhammad.shareef', 'rafaiz.jilani', 'shahzaib.khan' ]:
+        if qutil.getUsername() in _allowed_users:
             return True
         
     def checkAssets(self, val):
@@ -451,7 +452,7 @@ class Checkin(Form3, Base3):
         
     def handleEpClick(self):
         if os.environ['USERNAME'] not in ['umair.shahid', 'qurban.ali', 'talha.ahmed']:
-            self.parentWin.showMessage(msg='You don\'t have permissions to make changes to Episode Layout',
+            self.parentWin.showMessage(msg="You don't have permissions to make changes to Episode Layout",
                                        icon=QMessageBox.Warning)
             self.epLayoutButton.setChecked(False)
             return
