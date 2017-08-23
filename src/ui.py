@@ -4,8 +4,8 @@ Created on Jul 2, 2015
 @author: qurban.ali
 '''
 from uiContainer import uic
-from PyQt4.QtGui import QComboBox, QIcon, qApp, QMessageBox
-from PyQt4.QtCore import QRegExp, QRegExpValidator, Qt
+from PyQt4.QtGui import QComboBox, QIcon, qApp, QMessageBox, QRegExpValidator
+from PyQt4.QtCore import QRegExp, Qt
 import cui
 import os.path as osp
 import qtify_maya_window as qtfy
