@@ -178,7 +178,6 @@ class LayoutCreator(Form, Base, cui.TacticUiBase):
             self.shots.update(shots)
             errors.update(self.populateShotPlanner())
             errors.update(err)
-            print self.shots
             if shots:
                 self.shotBox.addItems(shots)
         except Exception as ex:
