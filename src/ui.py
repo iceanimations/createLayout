@@ -35,7 +35,7 @@ __title__ = 'Create Layout Scene'
 _allowed_users = [
     'qurban.ali', 'talha.ahmed', 'mohammad.bilal', 'sarmad.mushtaq',
     'fayyaz.ahmed', 'muhammad.shareef', 'rafaiz.jilani', 'shahzaib.khan',
-    'omer.siddiqui', 'irfan.nizar', 'raheel.qureshi'
+    'omer.siddiqui', 'irfan.nizar', 'raheel.qureshi', 'nasir.arshad'
 ]
 
 Form, Base = uic.loadUiType(osp.join(ui_path, 'main_dockable.ui'))
