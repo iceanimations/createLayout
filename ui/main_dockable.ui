@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>263</width>
+    <width>414</width>
     <height>658</height>
    </rect>
   </property>
@@ -29,6 +29,16 @@
          </size>
         </property>
        </spacer>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="includeButton">
+        <property name="toolTip">
+         <string>Include Rig name while creating names for Cache files</string>
+        </property>
+        <property name="text">
+         <string>Include Rig name</string>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QPushButton" name="syncRangeButton">
@@ -239,7 +249,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>241</width>
+             <width>392</width>
              <height>155</height>
             </rect>
            </property>

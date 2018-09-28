@@ -345,7 +345,7 @@ class LayoutCreator(Form, Base, cui.TacticUiBase):
                     msg='There are some extra References in this scene',
                     details=details,
                     icon=QMessageBox.Information)
-            utils.createCacheNamesOnGeoSets()
+            utils.createCacheNamesOnGeoSets(self.includeButton.isChecked())
         except Exception as ex:
             import traceback
             traceback.print_exc()

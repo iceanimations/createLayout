@@ -25,21 +25,25 @@ def switchRSProxyDisplayMode(val=RSProxyDisplayMode.BB):
             node.displayMode.set(val)
 
 
-def createCacheNamesOnGeoSets():
+def getGeosetName(geoset, includeRigName=False):
+    if includeRigName:
+        return '_'.join(geoset.name().replace('_geo_set', '').split(':')[-2:])
+    return imaya.getNiceName(geoset.name()).replace('_geo_set', '')
+
+def createCacheNamesOnGeoSets(includeRigName=False):
     geosets = [
         gs for gs in pc.ls(exactType=pc.nt.ObjectSet)
         if gs.name().lower().endswith('_geo_set')
     ]
-    counts = Counter([
-        imaya.getNiceName(geoset.name()).replace('_geo_set', '')
-        for geoset in geosets
-    ])
+    names = [getGeosetName(geoset, includeRigName)
+     for geoset in geosets]
+    counts = Counter(names)
     counts = {
         key: list(reversed(range(1, val + 1)))
         for key, val in counts.items()
     }
     for geoset in geosets:
-        niceName = imaya.getNiceName(geoset.name()).replace('_geo_set', '')
+        niceName = getGeosetName(geoset, includeRigName)
         if not geoset.hasAttr('cacheName'):
             pc.addAttr(geoset, sn='cname', ln='cacheName', dt='string', h=True)
         niceName += '_%s' % str(counts[niceName].pop()).zfill(2)
